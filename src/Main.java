@@ -37,21 +37,45 @@ public class Main {
                     //--------------------------------------------------------------------------------------------------------------------------
                     //Enter Name
                     System.out.print("Enter Your Name: ");
-                    String id = input.nextLine();
+                    String name = input.nextLine();
 
-                    Customer personel = new Customer(id, "901 Madison Avenue", "abc@gmail.com", "987-654-3210");
-                    credentials.add(personel);
+                    //----------------------------------------------------------------------------------------------------------------------------
+                    //Enter Address Info
+                    System.out.println("Enter Your Address: ");
+                    String Addr = input.nextLine();
+                    //----------------------------------------------------------------------------------------------------------------------------
+                    //Enter Email Info
+                    System.out.println("Enter your email address: ");
+                    String EmAddr = input.nextLine();
+                    //----------------------------------------------------------------------------------------------------------------------------
+                    //Enter Phone Info
+                    System.out.println("Enter your phone number: ");
+                    String PhNum = input.nextLine();
+
+                    Customer customer = new Customer(name, Addr, EmAddr, PhNum);
+                    credentials.add(customer);
 
                     //----------------------------------------------------------------------------------------------------------------------------
                     //Enter unit number
                     System.out.print("Enter Unit Number: ");
+
+                    boolean duplicate = false; // checking if unit number is already taken
+
                     int number = input.nextInt();
+                    for (StorageUnit u: units){
+                        if (u.unitNumber == number){
+                            System.out.println("Unit Number Already Taken."); // Goes back to Main Menu after since unit is already taken
+                            duplicate = true;
+                        }
 
-                    StorageUnit unit = new StorageUnit(number, "10x10", true, 120, id);
-                    units.add(unit);
+                    }
+                    if (!duplicate) {               // If not true then unit can be added to array
+                        StorageUnit unit = new StorageUnit(number, "10x10", true, 120, name);
+                        units.add(unit);
 
-                    System.out.println("Storage unit added successfully!");
-                    break;
+                        System.out.println("Storage unit added successfully!");
+                    }break;
+
 
                 case 2:
                     System.out.println("View Storage Unit Selected");
