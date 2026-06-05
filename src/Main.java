@@ -6,8 +6,11 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
 
-        ArrayList<StorageUnit> units = new ArrayList<>();
-        ArrayList<Customer> credentials = new ArrayList<>();
+
+        //ArrayList<StorageUnit> units = new ArrayList<>();
+        //ArrayList<Customer> credentials = new ArrayList<>();
+
+        StorageManager manager = new StorageManager();
 
         Scanner input = new Scanner(System.in);
 
@@ -52,58 +55,46 @@ public class Main {
                     System.out.println("Enter your phone number: ");
                     String PhNum = input.nextLine();
 
-                    Customer customer = new Customer(name, Addr, EmAddr, PhNum);
-                    credentials.add(customer);
+                    Customer customer = new Customer(name, Addr, EmAddr, PhNum); //store inputs in customer object
 
                     //----------------------------------------------------------------------------------------------------------------------------
-                    //Enter unit number
+                    //Enter unit info
                     System.out.print("Enter Unit Number: ");
-
-                    boolean duplicate = false; // checking if unit number is already taken
-
                     int number = input.nextInt();
-                    for (StorageUnit u: units){
-                        if (u.unitNumber == number){
-                            System.out.println("Unit Number Already Taken."); // Goes back to Main Menu after since unit is already taken
-                            duplicate = true;
-                        }
 
-                    }
-                    if (!duplicate) {               // If not true then unit can be added to array
+                    if (manager.unitExists(number)) {
+                        System.out.println("Unit Number Already Taken.");
+                    } else {
                         StorageUnit unit = new StorageUnit(number, "10x10", true, 120, name);
-                        units.add(unit);
+                        manager.addCustomerAndUnit(customer, unit);
 
                         System.out.println("Storage unit added successfully!");
-                    }break;
+                    }
+
+                    break;
 
 
                 case 2:
                     System.out.println("View Storage Unit Selected");
 
-                    boolean found = false;
-
+                    System.out.print("Enter unit number: ");
                     int searchNumber = input.nextInt();
-                    for (StorageUnit u: units){
-                        if (u.unitNumber == searchNumber){
-                            System.out.println(u);
-                            found= true;
-                        }
-                    }
 
-                    if (!found){
-                        System.out.println("Unit Can't be found");
-                    }
+                    manager.viewUnitByNumber(searchNumber);
+
                     break;
 
                 case 3:
                     System.out.println("Show All Units Selected");
 
+                    manager.showAllUnits();
+
                     //for each storage unit object inside the units array list -> temp variable as u
                     //to print out all storage unit objects in units array list.
-                    for (StorageUnit u: units){
+                    /*for (StorageUnit u: units){
                         System.out.println(u);
                         System.out.println("--------------");
-                    }
+                    }*/
 
                     break;
 
@@ -127,55 +118,20 @@ public class Main {
 
                         switch (filter){
                             case 1:
-                            System.out.println("Vacant Units");
-
-                            boolean foundfilter = false;
-
-                            for (StorageUnit u: units){
-                                if (!u.occupied){
-                                    System.out.println(u);
-                                    foundfilter = true;
-                                }
-
-                            }
-                            if (!foundfilter){
-                                System.out.println("All units occupied");
-                            }
-                            break;
+                                manager.showVacantUnits();
+                                 break;
 
                             case 2:
-                                System.out.println("Occupied Units");
-
-                                boolean OccFilter = false;
-
-                                for (StorageUnit u: units){
-                                    if (u.occupied){
-                                        System.out.println(u);
-                                        OccFilter = true;
-                                    }
-                                }
-                                if (!OccFilter){
-                                    System.out.println("No occupied Units");
-                                }
+                                manager.showOccupiedUnits();
                                 break;
 
                             case 3:
                                 System.out.println("Unit By Size");
                                 input.nextLine(); //to buffer out previous scanner input for ' ' taken
 
-                                boolean sizeMatch = false;
-
                                 System.out.println("Type in size");
-                                String SearchSize = input.nextLine();
-                                for (StorageUnit u: units){
-                                    if (u.size.equalsIgnoreCase(SearchSize)){
-                                        System.out.println(u);
-                                        sizeMatch = true;
-                                    }
-                                }
-                                if (!sizeMatch){
-                                    System.out.println("No units found with that size!");
-                                }
+                                String sizeInput = input.nextLine();
+                                manager.showUnitsBySize(sizeInput);
                                 break;
 
                             case 4:
