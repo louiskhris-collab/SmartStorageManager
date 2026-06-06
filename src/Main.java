@@ -58,6 +58,54 @@ public class Main {
                     Customer customer = new Customer(name, Addr, EmAddr, PhNum); //store inputs in customer object
 
                     //----------------------------------------------------------------------------------------------------------------------------
+
+
+                    System.out.println("Choose Unit Size:");
+                    System.out.println("1. 5x3  - $40");
+                    System.out.println("2. 5x5  - $60");
+                    System.out.println("3. 5x10 - $90");
+                    System.out.println("4. 10x10 - $120");
+                    System.out.println("5. 10x15 - $175");
+                    System.out.println("6. 10x20 - $220");
+
+                    System.out.println("Choose what Unit size you want: ");
+                    int choseSize = input.nextInt();
+
+                    String size = "";
+                    double rentRate = 0;
+
+                    switch (choseSize){
+                        case 1:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        case 2:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        case 3:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        case 4:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        case 5:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        case 6:
+                            size = "5x3";
+                            rentRate = 40;
+                            break;
+                        default:
+                            System.out.println("Invalid Input");
+                            break;
+                    }
+
+
+                    //----------------------------------------------------------------------------------------------------------------------------
                     //Enter unit info
                     System.out.print("Enter Unit Number: ");
                     int number = input.nextInt();
@@ -65,7 +113,7 @@ public class Main {
                     if (manager.unitExists(number)) {
                         System.out.println("Unit Number Already Taken.");
                     } else {
-                        StorageUnit unit = new StorageUnit(number, "10x10", true, 120, name);
+                        StorageUnit unit = new StorageUnit(number, size, true,rentRate, name);
                         manager.addCustomerAndUnit(customer, unit);
 
                         System.out.println("Storage unit added successfully!");
