@@ -89,4 +89,43 @@ public class StorageManager {
         }
     }
 
+    public double getRentRateByChoice(int choice){
+        switch(choice){
+                case 1:
+                    return 40;
+                case 2:
+                    return 60;
+                case 3:
+                    return 90;
+                case 4:
+                    return 120;
+                case 5:
+                    return 175;
+                case 6:
+                    return 220;
+                default:
+                    return 0;
+
+        }
+    }
+
+    public String getSizeByChoice(int choice){
+        switch (choice){
+            case 1:
+                return "5x3";
+            case 2:
+                return "5x5";
+            case 3:
+                return "5x10";
+            case 4:
+                return "10x10";
+            case 5:
+                return "10x15";
+            case 6:
+                return "10x20";
+            default:
+                return "";
+        }
+    }
+
 }

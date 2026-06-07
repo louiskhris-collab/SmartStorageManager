@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Scanner;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -71,37 +71,13 @@ public class Main {
                     System.out.println("Choose what Unit size you want: ");
                     int choseSize = input.nextInt();
 
-                    String size = "";
-                    double rentRate = 0;
+                    String size = manager.getSizeByChoice(choseSize);
+                    double rentRate = manager.getRentRateByChoice(choseSize);
 
-                    switch (choseSize){
-                        case 1:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        case 2:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        case 3:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        case 4:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        case 5:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        case 6:
-                            size = "5x3";
-                            rentRate = 40;
-                            break;
-                        default:
-                            System.out.println("Invalid Input");
-                            break;
+
+                    if (size.equals("") || rentRate == 0){
+                        System.out.println("Invalid Entry! ");
+                        break;
                     }
 
 
