@@ -11,6 +11,7 @@ public class Main {
         //ArrayList<Customer> credentials = new ArrayList<>();
 
         StorageManager manager = new StorageManager();
+        manager.loadSavedUnits();
 
         Scanner input = new Scanner(System.in);
 

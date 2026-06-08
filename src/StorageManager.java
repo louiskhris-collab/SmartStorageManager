@@ -1,6 +1,11 @@
+import com.sun.source.tree.WhileLoopTree;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class StorageManager {
 
@@ -146,10 +151,39 @@ public class StorageManager {
             saver.close();
             System.out.println("Units saved. ");
         }
-        catch (FileNotFoundException e) {
+        catch (FileNotFoundException e) { 
             System.out.println("Error saving file.");
         }
 
+    }
+
+    public void loadSavedUnits(){
+        try {
+            File file = new File("units.txt");
+            Scanner fileReader = new Scanner(file);
+
+            while (fileReader.hasNextLine()) {
+                String line = fileReader.nextLine();
+
+                String[] parts = line.split(",");
+
+                int unitNumber = Integer.parseInt(parts[0]);
+                String size = parts[1];
+                boolean occupied = Boolean.parseBoolean(parts[2]);
+                double monthlyRate = Double.parseDouble(parts[3]);
+                String tenant = parts[4];
+
+                StorageUnit unit = new StorageUnit(unitNumber,size,occupied,monthlyRate,tenant);
+
+                units.add(unit);
+            }
+            fileReader.close();
+            System.out.println("Loaded saved units successfully. ");
+
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Saved units not found.");
+        }
     }
 
 }
