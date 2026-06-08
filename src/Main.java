@@ -169,6 +169,7 @@ public class Main {
 
 
                 case 5:
+                    manager.saveUnitInfo();
                     System.out.println("Exiting Program...");
                     break;
 

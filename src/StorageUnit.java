@@ -1,3 +1,6 @@
+import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+
 public class StorageUnit {
     int unitNumber;
     String size;
@@ -13,6 +16,8 @@ public class StorageUnit {
         this.monthlyRate = monthlyRate;
         this.tenant = tenant;
     }
+
+
 
     @Override //ensures that toString method is called from String object.
     //if mistake where made. For example if lowercase tostring; @override will make sure its correct.

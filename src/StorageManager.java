@@ -1,3 +1,5 @@
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class StorageManager {
@@ -126,6 +128,28 @@ public class StorageManager {
             default:
                 return "";
         }
+    }
+
+    public void saveUnitInfo(){
+        try {
+            PrintWriter saver = new PrintWriter("units.txt");
+
+            for (StorageUnit unit: units){
+                saver.println(
+                        unit.unitNumber + "," +
+                                unit.size + "," +
+                                unit.occupied + "," +
+                                unit.monthlyRate + "," +
+                                unit.tenant
+                );
+            }
+            saver.close();
+            System.out.println("Units saved. ");
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Error saving file.");
+        }
+
     }
 
 }

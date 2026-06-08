@@ -1,0 +1,3 @@
+101,5x5,true,60.0,Khris Saint Louis
+102,5x3,true,40.0,Firlange Philippe
+103,10x15,true,175.0,Marko Durand
