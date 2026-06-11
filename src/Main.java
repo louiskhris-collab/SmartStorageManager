@@ -17,14 +17,17 @@ public class Main {
 
         int option = 0;
 
-        while(option != 5){
+        while(option != 8){
             System.out.println("=====================");
             System.out.println("==Storage Manager Menu==");
             System.out.println("1. Register new customer to unit");
             System.out.println("2. View Storage Unit");
             System.out.println("3. Show All Units");
             System.out.println("4. Search Unit By Filter");
-            System.out.println("5. Exit");
+            System.out.println("5. Vacate Unit");
+            System.out.println("6. Delete Storage Unit");
+            System.out.println("7. Show Finacial Report");
+            System.out.println("8. Exit");
 
             System.out.println("Enter choice: ");
             System.out.println("=====================");
@@ -166,10 +169,27 @@ public class Main {
                     }
                     break;
 
-
-
-
                 case 5:
+                    System.out.println("Enter unit to vacate");
+                    int vacateUnit = input.nextInt();
+
+                    manager.moveOutUnit(vacateUnit);
+                    break;
+
+                case 6:
+                    System.out.println("To remove enter unit number. ");
+                    int removeUnit = input.nextInt();
+
+                    manager.deleteUnitByNumber(removeUnit);
+                    break;
+
+                case 7:
+                    manager.showFinancialReport();
+                    System.out.println("Exiting to financial reports");
+                    break;
+
+
+                case 8:
                     manager.saveUnitInfo();
                     System.out.println("Exiting Program...");
                     break;

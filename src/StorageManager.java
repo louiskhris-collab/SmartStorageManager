@@ -186,4 +186,123 @@ public class StorageManager {
         }
     }
 
+    public void deleteUnitByNumber(int unitNumber) {
+        boolean removed = false;
+
+        for (int i = 0 ; i < units.size(); i++){
+            if (units.get(i).unitNumber == unitNumber) {
+                units.remove(i);
+                removed = true;
+                System.out.println("Unit deleted Successfully.");
+                break;
+            }
+        }
+
+        if (!removed) {
+            System.out.println("Unit not found. ");
+        }
+    }
+
+    public void moveOutUnit(int unitNumber) {
+        //boolean found = false;
+
+        for (StorageUnit unit: units){
+            if (unit.unitNumber == unitNumber) {
+                //found = true;
+                unit.occupied = false;
+                unit.tenant = "Vacant";
+                System.out.println("Unit vacated");
+                return;
+            }
+        }
+
+            System.out.println("Unit not found. ");
+
+    }
+
+    public void showFinancialReport() {
+        int totalUnits = units.size(); //size is array class method
+        int occupiedUnits = 0;
+        int vacantUnits = 0;
+        double monthlyRevenue = 0;
+
+        double revenueFor5x3 = 0;
+        double revenueFor5x5 = 0;
+        double revenueFor5x10 = 0;
+        double revenueFor10x10 = 0;
+        double revenueFor10x15 = 0;
+        double revenueFor10x20 = 0;
+
+        for (StorageUnit unit : units) {
+            if (unit.occupied) {
+                occupiedUnits++;
+                monthlyRevenue += unit.monthlyRate;
+
+                switch (unit.size) { //switch case doesn't need equalsIgnoreCase method because size String predermined in getSizeByChoice
+                    case "5x3":
+                        revenueFor5x3 += unit.monthlyRate;
+                        break;
+
+                    case "5x5":
+                        revenueFor5x5 += unit.monthlyRate;
+                        break;
+
+                    case "5x10":
+                        revenueFor5x10 += unit.monthlyRate;
+                        break;
+
+                    case "10x10":
+                        revenueFor10x10 += unit.monthlyRate;
+                        break;
+
+                    case "10x15":
+                        revenueFor10x15 += unit.monthlyRate;
+                        break;
+
+                    case "10x20":
+                        revenueFor10x20 += unit.monthlyRate;
+                        break;
+
+                }
+               /* if (unit.size.equalsIgnoreCase("5x3")) {
+                    revenueFor5x3 += unit.monthlyRate;
+                } else if (unit.size.equalsIgnoreCase("5x5")) {
+                    revenueFor5x5 += unit.monthlyRate;
+                } else if (unit.size.equalsIgnoreCase("5x10")) {
+                    revenueFor5x10 += unit.monthlyRate;
+                } else if (unit.size.equalsIgnoreCase("10x10")) {
+                    revenueFor10x10 += unit.monthlyRate;
+                } else if (unit.size.equalsIgnoreCase("10x15")) {
+                    revenueFor10x15 += unit.monthlyRate;
+                } else if (unit.size.equalsIgnoreCase("10x20")) {
+                    revenueFor10x20 += unit.monthlyRate;
+                }*/
+            } else {
+                vacantUnits++;
+            }
+        }
+
+        double occupancyRate = 0;
+
+        if (totalUnits > 0) {
+            occupancyRate = ((double) occupiedUnits / totalUnits) * 100;
+        }
+
+        System.out.println("===== Storage Report =====");
+        System.out.println("Total Units: " + totalUnits);
+        System.out.println("Occupied Units: " + occupiedUnits);
+        System.out.println("Vacant Units: " + vacantUnits);
+        System.out.println("Occupancy Rate: " + occupancyRate + "%");
+        System.out.println("Monthly Revenue: $" + monthlyRevenue);
+        System.out.println("\n");
+        System.out.println("Revenue Breakdown By Unit Size:");
+        System.out.println("Revenue for 5x3: $" + revenueFor5x3);
+        System.out.println("Revenue for 5x5: $" + revenueFor5x5);
+        System.out.println("Revenue for 5x10: $" + revenueFor5x10);
+        System.out.println("Revenue for 10x10: $" + revenueFor10x10);
+        System.out.println("Revenue for 10x15: $" + revenueFor10x15);
+        System.out.println("Revenue for 10x20: $" + revenueFor10x20);
+
+    }
+
 }
