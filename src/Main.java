@@ -17,7 +17,7 @@ public class Main {
 
         int option = 0;
 
-        while(option != 8){
+        while(option != 9){
             System.out.println("=====================");
             System.out.println("==Storage Manager Menu==");
             System.out.println("1. Register new customer to unit");
@@ -26,8 +26,9 @@ public class Main {
             System.out.println("4. Search Unit By Filter");
             System.out.println("5. Vacate Unit");
             System.out.println("6. Delete Storage Unit");
-            System.out.println("7. Show Finacial Report");
-            System.out.println("8. Exit");
+            System.out.println("7. Show Financial Report");
+            System.out.println("8. Update Unit Rate ");
+            System.out.println("9. Save and Exit ");
 
             System.out.println("Enter choice: ");
             System.out.println("=====================");
@@ -188,8 +189,21 @@ public class Main {
                     System.out.println("Exiting to financial reports");
                     break;
 
-
                 case 8:
+                    System.out.println("Update Rental Rate: ");
+                    System.out.println("Choose a current Occupied Unit");
+
+                    int updateUnit = input.nextInt();
+
+                    System.out.println("Update monthly rate ");
+
+                    double updateRate = input.nextDouble();
+
+                    manager.updateRentalRate(updateUnit, updateRate);
+                    break;
+
+
+                case 9:
                     manager.saveUnitInfo();
                     System.out.println("Exiting Program...");
                     break;

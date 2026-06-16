@@ -203,6 +203,22 @@ public class StorageManager {
         }
     }
 
+    public void updateRentalRate(int unitNumber, double newRate) {
+        boolean found = false;
+        for (StorageUnit unit: units){
+            if (unit.unitNumber == unitNumber) {
+                found = true;
+                unit.monthlyRate = newRate;
+                System.out.println("Rent changed successfully. ");
+                return;
+            }
+
+        }
+        if (!found){
+            System.out.println("Unit can't be found. ");
+        }
+    }
+
     public void moveOutUnit(int unitNumber) {
         //boolean found = false;
 
