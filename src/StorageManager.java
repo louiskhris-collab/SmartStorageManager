@@ -219,6 +219,22 @@ public class StorageManager {
         }
     }
 
+    public void updateTenantName(int unitNumber, String newName) {
+        boolean found = false;
+        for (StorageUnit unit: units){
+            if (unit.unitNumber == unitNumber) {
+                found = true;
+                unit.tenant = newName;
+                System.out.println("Tenant name changed successfully. ");
+                return;
+            }
+
+        }
+        if (!found){
+            System.out.println("Unit can't be found. ");
+        }
+    }
+
     public void moveOutUnit(int unitNumber) {
         //boolean found = false;
 
