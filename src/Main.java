@@ -47,19 +47,35 @@ public class Main {
                     //Enter Name
                     System.out.print("Enter Your Name: ");
                     String name = input.nextLine();
+                    if (!manager.isValidName(name)){
+                        System.out.println("Invalid name");
+                        break;
+                    }
 
                     //----------------------------------------------------------------------------------------------------------------------------
                     //Enter Address Info
                     System.out.println("Enter Your Address: ");
                     String Addr = input.nextLine();
+                    if (!manager.isValidAddress(Addr)){
+                        System.out.println("Invalid Address");
+                        break;
+                    }
                     //----------------------------------------------------------------------------------------------------------------------------
                     //Enter Email Info
                     System.out.println("Enter your email address: ");
                     String EmAddr = input.nextLine();
+                    if (!manager.isValidEmail(EmAddr)){
+                        System.out.printf("Invalid email address");
+                        break;
+                    }
                     //----------------------------------------------------------------------------------------------------------------------------
                     //Enter Phone Info
                     System.out.println("Enter your phone number: ");
                     String PhNum = input.nextLine();
+                    if (!manager.isValidPhoneNumber(PhNum)){
+                        System.out.println("invalid phone number");
+                        break;
+                    }
 
                     Customer customer = new Customer(name, Addr, EmAddr, PhNum); //store inputs in customer object
 

@@ -12,6 +12,7 @@ public class StorageManager {
     ArrayList<StorageUnit> units = new ArrayList<>();
     ArrayList<Customer> customers = new ArrayList<>();
 
+    // adds both Customer and Storage unit info into respected arrays
     public void addCustomerAndUnit(Customer customer, StorageUnit unit) {
         customers.add(customer);
         units.add(unit);
@@ -26,12 +27,30 @@ public class StorageManager {
         return false;
     }
 
+    public boolean isValidName(String name) {
+        return name.matches("[a-zA-Z ]+");
+    }
+
+    public boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    }
+
+    public boolean isValidPhoneNumber(String phone) {
+        return phone.matches("\\d{3}-\\d{3}-\\d{4}");
+    }
+
+    public boolean isValidAddress(String address) {
+        return address.length() >= 5;
+    }
+
+    // prints all units saved in StorageUnit array
     public void showAllUnits() {
         for (StorageUnit unit : units) {
             System.out.println(unit);
         }
     }
 
+    // Select a unit number and print unit info from StorageUnit Array
     public void viewUnitByNumber(int unitNumber) {
         boolean found = false;
 
@@ -48,6 +67,7 @@ public class StorageManager {
         }
     }
 
+    // Displays units that are vacant
     public void showVacantUnits (){
         boolean foundVac = false;
 
@@ -63,6 +83,7 @@ public class StorageManager {
         }
     }
 
+    // Displays units that are occupied
     public void showOccupiedUnits (){
         boolean foundOcc = false;
 
@@ -78,6 +99,7 @@ public class StorageManager {
         }
     }
 
+    // Search up unit size and it will display units that are matched in size
     public void showUnitsBySize(String size) {
         //System.out.println("Unit By Size");
         //input.nextLine(); //to buffer out previous scanner input for ' ' taken
@@ -96,6 +118,7 @@ public class StorageManager {
         }
     }
 
+    // Rent will be chosen
     public double getRentRateByChoice(int choice){
         switch(choice){
                 case 1:
@@ -116,6 +139,7 @@ public class StorageManager {
         }
     }
 
+    // Unit size chosen
     public String getSizeByChoice(int choice){
         switch (choice){
             case 1:
@@ -135,6 +159,7 @@ public class StorageManager {
         }
     }
 
+    // Saves Storage unit info into txt file
     public void saveUnitInfo(){
         try {
             PrintWriter saver = new PrintWriter("units.txt");
@@ -157,6 +182,7 @@ public class StorageManager {
 
     }
 
+    // Scan and reads txt file and reads line by line to parse strings separated by ',' into different data variations
     public void loadSavedUnits(){
         try {
             File file = new File("units.txt");
@@ -186,6 +212,7 @@ public class StorageManager {
         }
     }
 
+    // Deletes unit by searching for unit number
     public void deleteUnitByNumber(int unitNumber) {
         boolean removed = false;
 
@@ -203,6 +230,7 @@ public class StorageManager {
         }
     }
 
+    // Searches SorageUnit Array and updates unit monthly rate
     public void updateRentalRate(int unitNumber, double newRate) {
         boolean found = false;
         for (StorageUnit unit: units){
@@ -219,6 +247,7 @@ public class StorageManager {
         }
     }
 
+    // Searches StorageUnit Array and updates unit monthly rate
     public void updateTenantName(int unitNumber, String newName) {
         boolean found = false;
         for (StorageUnit unit: units){
@@ -235,6 +264,7 @@ public class StorageManager {
         }
     }
 
+    // Moves out tenant and marks storage as vacant
     public void moveOutUnit(int unitNumber) {
         //boolean found = false;
 
@@ -252,6 +282,7 @@ public class StorageManager {
 
     }
 
+    // Prints fincancial report
     public void showFinancialReport() {
         int totalUnits = units.size(); //size is array class method
         int occupiedUnits = 0;
