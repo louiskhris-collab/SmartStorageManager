@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.sql.Connection;
 
 public class StorageManager {
 
@@ -48,6 +49,16 @@ public class StorageManager {
         for (StorageUnit unit : units) {
             System.out.println(unit);
         }
+    }
+
+    public void showAllUnitsDatabase() {
+      Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+            SELECT su.unit_number, ut.size, ut.base_rate, su.occupied, su.customer_id
+            FROM storage_units su
+            JOIN unit_types ut ON su.type_id = ut.type_id
+            """;
     }
 
     // Select a unit number and print unit info from StorageUnit Array
