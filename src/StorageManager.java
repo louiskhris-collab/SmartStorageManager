@@ -3,10 +3,10 @@ import com.sun.source.tree.WhileLoopTree;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.sql.SQLOutput;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.sql.Connection;
+import java.sql.ResultSet;
 
 public class StorageManager {
 
@@ -52,13 +52,40 @@ public class StorageManager {
     }
 
     public void showAllUnitsDatabase() {
-      Connection connection = DatabaseManager.getConnection();
+
+        Connection connection = DatabaseManager.getConnection();
 
         String sql = """
-            SELECT su.unit_number, ut.size, ut.base_rate, su.occupied, su.customer_id
+            SELECT
+                su.unit_number,
+                ut.size,
+                ut.base_rate,
+                su.occupied,
+                su.customer_id
             FROM storage_units su
-            JOIN unit_types ut ON su.type_id = ut.type_id
+            JOIN unit_types ut
+            ON su.type_id = ut.type_id;
             """;
+
+        try {
+
+            Statement statement = connection.createStatement();
+
+            ResultSet results = statement.executeQuery(sql);
+
+            while (results.next()) {
+                int unitNumber = results.getInt("unit_number");
+                String size = results.getString("size");
+                double rate = results.getDouble("base_rate");
+                boolean occupied = results.getBoolean("occupied");
+
+                System.out.println(unitNumber + " | " + size + " | $" + rate + " | Occupied: " + occupied);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to create statement.");
+            System.out.println(e.getMessage());
+        }
     }
 
     // Select a unit number and print unit info from StorageUnit Array

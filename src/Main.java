@@ -11,7 +11,7 @@ public class Main {
         //ArrayList<Customer> credentials = new ArrayList<>();
 
         StorageManager manager = new StorageManager();
-        manager.loadSavedUnits();
+        //manager.loadSavedUnits();
 
         Scanner input = new Scanner(System.in);
 
@@ -133,7 +133,9 @@ public class Main {
                 case 3:
                     System.out.println("Show All Units Selected");
 
-                    manager.showAllUnits();
+                    manager.showAllUnitsDatabase();
+
+                    //manager.showAllUnits();
 
                     //for each storage unit object inside the units array list -> temp variable as u
                     //to print out all storage unit objects in units array list.
