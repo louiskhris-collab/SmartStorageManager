@@ -77,7 +77,7 @@ public class Main {
                         break;
                     }
 
-                    Customer customer = new Customer(name, Addr, EmAddr, PhNum); //store inputs in customer object
+                    manager.addCustomerDatabase(name, Addr, EmAddr, PhNum); //store inputs in customer object
 
                     //----------------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ public class Main {
                         System.out.println("Unit Number Already Taken.");
                     } else {
                         StorageUnit unit = new StorageUnit(number, size, true,rentRate, name);
-                        manager.addCustomerAndUnit(customer, unit);
+                       // manager.addCustomerAndUnit(customer, unit);
 
                         System.out.println("Storage unit added successfully!");
                     }
@@ -126,7 +126,9 @@ public class Main {
                     System.out.print("Enter unit number: ");
                     int searchNumber = input.nextInt();
 
-                    manager.viewUnitByNumber(searchNumber);
+                    manager.viewUnitByNumberDatabase(searchNumber);
+
+                    //manager.viewUnitByNumber(searchNumber);
 
                     break;
 

@@ -1,10 +1,12 @@
 import com.sun.source.tree.WhileLoopTree;
+import org.w3c.dom.ls.LSOutput;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 import java.sql.ResultSet;
 
@@ -17,6 +19,76 @@ public class StorageManager {
     public void addCustomerAndUnit(Customer customer, StorageUnit unit) {
         customers.add(customer);
         units.add(unit);
+    }
+
+    public String generateCustomerNumber() {
+        Random rand = new Random();
+        String fullCustomerNumber;
+        do {
+            int num = rand.nextInt(900000) + 100000;
+            fullCustomerNumber = "CUS-" + num;
+
+        }
+        while (checkCustomerNumberExist(fullCustomerNumber));
+
+        return fullCustomerNumber;
+    }
+
+    public boolean checkCustomerNumberExist(String customerNumber) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+                        SELECT customer_number
+                        FROM customers
+                        WHERE customer_number = ?;
+                """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setString(1, customerNumber);
+
+            ResultSet results = pS.executeQuery();
+
+            if (results.next()){
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Customer number already exist.");
+            System.out.println(e.getMessage());
+        }
+       return false;
+    }
+
+    public void addCustomerDatabase(String name, String address, String email, String phone) {
+        Connection connection = DatabaseManager.getConnection();
+        String customerNumber = generateCustomerNumber();
+
+        String sql = """
+                INSERT INTO customers
+                                (customer_number, name, address, email, phone)
+                                VALUES (?,?,?,?,?)
+                """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setString(1, customerNumber);
+            pS.setString(2, name);
+            pS.setString(3, address);
+            pS.setString(4, email);
+            pS.setString(5, phone);
+
+            pS.executeUpdate();
+
+            System.out.println("Customer added successfully.");
+            System.out.println("Customer Number: " + customerNumber);
+
+            System.out.println("Customer added to database successfully.");
+        } catch (SQLException e) {
+            System.out.println("Unable to add customer. ");
+            System.out.println(e.getMessage());
+        }
     }
 
     public boolean unitExists(int unitNumber) {
@@ -51,6 +123,7 @@ public class StorageManager {
         }
     }
 
+    // prints all units saved in StorageUnit array DATABASE VERSION
     public void showAllUnitsDatabase() {
 
         Connection connection = DatabaseManager.getConnection();
@@ -103,6 +176,52 @@ public class StorageManager {
         if (!found) {
             System.out.println("Unit can't be found.");
         }
+    }
+
+    // Select a unit number and print unit info from StorageUnit Array DATABASE VERSION
+    public void viewUnitByNumberDatabase(int unitNumber) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+        SELECT
+            su.unit_number,
+            ut.size,
+            ut.base_rate,
+            su.occupied,
+            su.customer_id
+        FROM storage_units su
+        JOIN unit_types ut
+            ON su.type_id = ut.type_id
+        WHERE su.unit_number = ?;
+        """;
+
+        try {
+
+            PreparedStatement pS = connection.prepareStatement(sql);
+            pS.setInt(1, unitNumber);
+
+            ResultSet results = pS.executeQuery();
+
+
+            if (results.next()) {
+
+                int foundunitNumber = results.getInt("unit_number");
+                String size = results.getString("size");
+                double rate = results.getDouble("base_rate");
+                boolean occupied = results.getBoolean("occupied");
+
+                System.out.println(foundunitNumber + " | " + size + " | $" + rate + " | Occupied: " + occupied);
+
+            } else{
+                System.out.println("Unit not found !");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to create statement.");
+            System.out.println(e.getMessage());
+        }
+
+
     }
 
     // Displays units that are vacant
