@@ -38,7 +38,26 @@ public class Main {
 
             switch (option){
                 case 1:
-                    System.out.println("Register new customer Selected");
+
+                    System.out.println("Enter a unit to rent. ");
+                    int chooseUnitNumber = input.nextInt();
+
+                    input.nextLine(); //break
+
+                    if (!manager.isUnitAvalaibleDatabase(chooseUnitNumber)) {
+                        System.out.println("Unit is occupied: ");
+                        break;
+                    }
+
+                   int customerid = manager.addCustomerDatabase(name, address, email, phone);
+
+                    if (customerId != -1) {
+                        manager.assignCustomerToUnitDatabase(customerId, number);
+                    }
+
+
+
+                    /*System.out.println("Register new customer Selected");
 
                     //Note to self how Java Buffer works in Scanner method
                     input.nextLine(); // eats leftover Enter or the \n from option = input.nextInt();
@@ -117,7 +136,7 @@ public class Main {
                         System.out.println("Storage unit added successfully!");
                     }
 
-                    break;
+                    break;*/
 
 
                 case 2:

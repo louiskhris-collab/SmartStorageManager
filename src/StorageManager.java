@@ -21,6 +21,7 @@ public class StorageManager {
         units.add(unit);
     }
 
+    //Generates customer number for customers.
     public String generateCustomerNumber() {
         Random rand = new Random();
         String fullCustomerNumber;
@@ -34,6 +35,7 @@ public class StorageManager {
         return fullCustomerNumber;
     }
 
+    //Check if generated number already exist
     public boolean checkCustomerNumberExist(String customerNumber) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -60,18 +62,19 @@ public class StorageManager {
        return false;
     }
 
-    public void addCustomerDatabase(String name, String address, String email, String phone) {
+    //Creating new customer and adding to customer table in database.
+    public int addCustomerDatabase(String name, String address, String email, String phone) {
         Connection connection = DatabaseManager.getConnection();
+
         String customerNumber = generateCustomerNumber();
 
         String sql = """
-                INSERT INTO customers
-                                (customer_number, name, address, email, phone)
-                                VALUES (?,?,?,?,?)
-                """;
+            INSERT INTO customers (customer_number, name, address, email, phone)
+            VALUES (?, ?, ?, ?, ?);
+            """;
 
         try {
-            PreparedStatement pS = connection.prepareStatement(sql);
+            PreparedStatement pS = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             pS.setString(1, customerNumber);
             pS.setString(2, name);
@@ -81,22 +84,92 @@ public class StorageManager {
 
             pS.executeUpdate();
 
-            System.out.println("Customer added successfully.");
-            System.out.println("Customer Number: " + customerNumber);
+            ResultSet generatedKeys = pS.getGeneratedKeys();
 
-            System.out.println("Customer added to database successfully.");
+            if (generatedKeys.next()) {
+                int customerId = generatedKeys.getInt(1);
+
+                System.out.println("Customer added successfully.");
+                System.out.println("Customer Number: " + customerNumber);
+                System.out.println("Customer ID: " + customerId);
+
+                return customerId;
+            }
+
         } catch (SQLException e) {
-            System.out.println("Unable to add customer. ");
+            System.out.println("Unable to add customer.");
+            System.out.println(e.getMessage());
+        }
+
+        return -1;
+    }
+
+    public void assignCustomerToUnitDatabase(int customerId, int unitNumber) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+                UPDATE storage_units
+                            SET occupied = TRUE,
+                                customer_id = ?
+                            WHERE unit_number = ?;
+                """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setInt(1, customerId);
+            pS.setInt(2, unitNumber);
+
+            int updatedRows = pS.executeUpdate();
+
+            if (updatedRows > 0) {
+                System.out.println("Customer assigned to unit successfully.");
+            } else {
+                System.out.println("Unit not found");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to connect customer to unit.");
             System.out.println(e.getMessage());
         }
     }
 
+    //Checks if unit already exist
     public boolean unitExists(int unitNumber) {
         for (StorageUnit unit : units) {
             if (unit.unitNumber == unitNumber) {
                 return true;
             }
         }
+        return false;
+    }
+
+    //Check if unit is avalaible
+    public boolean isUnitAvailableDatabase(int unitNumber) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+            SELECT occupied
+            FROM storage_units
+            WHERE unit_number = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+            pS.setInt(1, unitNumber);
+
+            ResultSet results = pS.executeQuery();
+
+            if (results.next()) {
+                boolean occupied = results.getBoolean("occupied");
+                return !occupied;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to check unit availability.");
+            System.out.println(e.getMessage());
+        }
+
         return false;
     }
 
