@@ -44,15 +44,43 @@ public class Main {
 
                     input.nextLine(); //break
 
-                    if (!manager.isUnitAvalaibleDatabase(chooseUnitNumber)) {
+                    if (!manager.isUnitAvailableDatabase(chooseUnitNumber)) {
                         System.out.println("Unit is occupied: ");
                         break;
                     }
 
-                   int customerid = manager.addCustomerDatabase(name, address, email, phone);
+                    System.out.print("Enter customer name: ");
+                    String name = input.nextLine();
+                         if (!manager.isValidName(name)){
+                            System.out.println("Invalid name");
+                            break;
+                    }
+
+                    System.out.print("Enter address: ");
+                    String address = input.nextLine();
+                        if (!manager.isValidAddress(address)) {
+                            System.out.println("Invalid Address");
+                            break;
+                        }
+
+                    System.out.print("Enter email: ");
+                    String email = input.nextLine();
+                        if (!manager.isValidEmail(email)){
+                            System.out.printf("Invalid email address");
+                            break;
+                        }
+
+                    System.out.print("Enter phone: ");
+                    String phone = input.nextLine();
+                        if (!manager.isValidPhoneNumber(phone)){
+                            System.out.println("invalid phone number");
+                            break;
+                        }
+
+                   int customerId = manager.addCustomerDatabase(name, address, email, phone);
 
                     if (customerId != -1) {
-                        manager.assignCustomerToUnitDatabase(customerId, number);
+                        manager.assignCustomerToUnitDatabase(customerId, chooseUnitNumber);
                     }
 
 
@@ -134,9 +162,9 @@ public class Main {
                        // manager.addCustomerAndUnit(customer, unit);
 
                         System.out.println("Storage unit added successfully!");
-                    }
+                    }*/
 
-                    break;*/
+                    break;
 
 
                 case 2:
