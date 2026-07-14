@@ -7,11 +7,7 @@ public class Main {
     public static void main(String[] args) {
         DatabaseManager.getConnection();
 
-        //ArrayList<StorageUnit> units = new ArrayList<>();
-        //ArrayList<Customer> credentials = new ArrayList<>();
-
         StorageManager manager = new StorageManager();
-        //manager.loadSavedUnits();
 
         Scanner input = new Scanner(System.in);
 
@@ -25,11 +21,10 @@ public class Main {
             System.out.println("3. Show All Units");
             System.out.println("4. Search Unit By Filter");
             System.out.println("5. Vacate Unit");
-            System.out.println("6. Delete Storage Unit");
-            System.out.println("7. Show Financial Report");
-            System.out.println("8. Update Unit Rate ");
-            System.out.println("9. Update Tenant name");
-            System.out.println("10. Save and Exit ");
+            System.out.println("6. Show Financial Report");
+            System.out.println("7. Update Unit Rate ");
+            System.out.println("8. Update Tenant name");
+            System.out.println("9. Save and Exit ");
 
             System.out.println("Enter choice: ");
             System.out.println("=====================");
@@ -83,87 +78,6 @@ public class Main {
                         manager.assignCustomerToUnitDatabase(customerId, chooseUnitNumber);
                     }
 
-
-
-                    /*System.out.println("Register new customer Selected");
-
-                    //Note to self how Java Buffer works in Scanner method
-                    input.nextLine(); // eats leftover Enter or the \n from option = input.nextInt();
-
-                    //--------------------------------------------------------------------------------------------------------------------------
-                    //Enter Name
-                    System.out.print("Enter Your Name: ");
-                    String name = input.nextLine();
-                    if (!manager.isValidName(name)){
-                        System.out.println("Invalid name");
-                        break;
-                    }
-
-                    //----------------------------------------------------------------------------------------------------------------------------
-                    //Enter Address Info
-                    System.out.println("Enter Your Address: ");
-                    String Addr = input.nextLine();
-                    if (!manager.isValidAddress(Addr)){
-                        System.out.println("Invalid Address");
-                        break;
-                    }
-                    //----------------------------------------------------------------------------------------------------------------------------
-                    //Enter Email Info
-                    System.out.println("Enter your email address: ");
-                    String EmAddr = input.nextLine();
-                    if (!manager.isValidEmail(EmAddr)){
-                        System.out.printf("Invalid email address");
-                        break;
-                    }
-                    //----------------------------------------------------------------------------------------------------------------------------
-                    //Enter Phone Info
-                    System.out.println("Enter your phone number: ");
-                    String PhNum = input.nextLine();
-                    if (!manager.isValidPhoneNumber(PhNum)){
-                        System.out.println("invalid phone number");
-                        break;
-                    }
-
-                    manager.addCustomerDatabase(name, Addr, EmAddr, PhNum); //store inputs in customer object
-
-                    //----------------------------------------------------------------------------------------------------------------------------
-
-
-                    System.out.println("Choose Unit Size:");
-                    System.out.println("1. 5x3  - $40");
-                    System.out.println("2. 5x5  - $60");
-                    System.out.println("3. 5x10 - $90");
-                    System.out.println("4. 10x10 - $120");
-                    System.out.println("5. 10x15 - $175");
-                    System.out.println("6. 10x20 - $220");
-
-                    System.out.println("Choose what Unit size you want: ");
-                    int choseSize = input.nextInt();
-
-                    String size = manager.getSizeByChoice(choseSize);
-                    double rentRate = manager.getRentRateByChoice(choseSize);
-
-
-                    if (size.equals("") || rentRate == 0){
-                        System.out.println("Invalid Entry! ");
-                        break;
-                    }
-
-
-                    //----------------------------------------------------------------------------------------------------------------------------
-                    //Enter unit info
-                    System.out.print("Enter Unit Number: ");
-                    int number = input.nextInt();
-
-                    if (manager.unitExists(number)) {
-                        System.out.println("Unit Number Already Taken.");
-                    } else {
-                        StorageUnit unit = new StorageUnit(number, size, true,rentRate, name);
-                       // manager.addCustomerAndUnit(customer, unit);
-
-                        System.out.println("Storage unit added successfully!");
-                    }*/
-
                     break;
 
 
@@ -181,18 +95,7 @@ public class Main {
 
                 case 3:
                     System.out.println("Show All Units Selected");
-
                     manager.showAllUnitsDatabase();
-
-                    //manager.showAllUnits();
-
-                    //for each storage unit object inside the units array list -> temp variable as u
-                    //to print out all storage unit objects in units array list.
-                    /*for (StorageUnit u: units){
-                        System.out.println(u);
-                        System.out.println("--------------");
-                    }*/
-
                     break;
 
                 case 4:
@@ -215,11 +118,11 @@ public class Main {
 
                         switch (filter){
                             case 1:
-                                manager.showVacantUnits();
+                                manager.showVacantUnitsDatabase();
                                  break;
 
                             case 2:
-                                manager.showOccupiedUnits();
+                                manager.showOccupiedUnitsDatabase();
                                 break;
 
                             case 3:
@@ -228,7 +131,7 @@ public class Main {
 
                                 System.out.println("Type in size");
                                 String sizeInput = input.nextLine();
-                                manager.showUnitsBySize(sizeInput);
+                                manager.showUnitsBySizeDatabase(sizeInput);
                                 break;
 
                             case 4:
@@ -239,52 +142,42 @@ public class Main {
                     break;
 
                 case 5:
-                    System.out.println("Enter unit to vacate");
+                    System.out.println("Enter a unit number to vacate");
                     int vacateUnit = input.nextInt();
 
-                    manager.moveOutUnit(vacateUnit);
+                    manager.moveOutUnitDatabase(vacateUnit);
                     break;
 
                 case 6:
-                    System.out.println("To remove enter unit number. ");
-                    int removeUnit = input.nextInt();
-
-                    manager.deleteUnitByNumber(removeUnit);
-                    break;
-
-                case 7:
-                    manager.showFinancialReport();
+                    manager.showFinancialReportDatabase();
                     System.out.println("Exiting to financial reports");
                     break;
 
-                case 8:
-                    System.out.println("Update Rental Rate: ");
-                    System.out.println("Choose a current Occupied Unit");
+                case 7:
+                    System.out.print("Enter unit size: ");
+                    input.nextLine(); // buffer input
+                    String sizeToUpdate = input.nextLine();
 
-                    int updateUnit = input.nextInt();
+                    System.out.print("Enter new rental rate: ");
+                    double newRate = input.nextDouble();
 
-                    System.out.println("Update monthly rate ");
-                    double updateRate = input.nextDouble();
-
-                    manager.updateRentalRate(updateUnit, updateRate);
+                    manager.updateRentalRateDatabase(sizeToUpdate, newRate);
                     break;
+
+                case 8:
+                    input.nextLine(); // clears newline left by nextInt()
+
+                    System.out.print("Enter customer number: ");
+                    String customerNumber = input.nextLine();
+
+                    System.out.print("Enter new customer name: ");
+                    String newName = input.nextLine();
+
+                    manager.updateCustomerNameDatabase(customerNumber, newName);
+                    break;
+
 
                 case 9:
-                    System.out.println("Update Tenant name: ");
-                    System.out.println("Choose a current Occupied Unit");
-
-                    int tenantUnitSearch = input.nextInt();
-                    input.nextLine(); // takes in leftover Enter
-
-                    System.out.println("Update tenant Name:");
-                    String updateTenantName = input.nextLine();
-
-                    manager.updateTenantName(tenantUnitSearch, updateTenantName);
-                    break;
-
-
-                case 10:
-                    manager.saveUnitInfo();
                     System.out.println("Exiting Program...");
                     break;
 

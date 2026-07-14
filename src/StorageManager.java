@@ -1,6 +1,6 @@
+import com.mysql.cj.protocol.a.LocalDateValueEncoder;
 import com.sun.source.tree.WhileLoopTree;
 import org.w3c.dom.ls.LSOutput;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -11,15 +11,6 @@ import java.util.Scanner;
 import java.sql.ResultSet;
 
 public class StorageManager {
-
-    ArrayList<StorageUnit> units = new ArrayList<>();
-    ArrayList<Customer> customers = new ArrayList<>();
-
-    // adds both Customer and Storage unit info into respected arrays
-    public void addCustomerAndUnit(Customer customer, StorageUnit unit) {
-        customers.add(customer);
-        units.add(unit);
-    }
 
     //Generates customer number for customers.
     public String generateCustomerNumber() {
@@ -134,16 +125,6 @@ public class StorageManager {
         }
     }
 
-    //Checks if unit already exist
-    public boolean unitExists(int unitNumber) {
-        for (StorageUnit unit : units) {
-            if (unit.unitNumber == unitNumber) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     //Check if unit is avalaible
     public boolean isUnitAvailableDatabase(int unitNumber) {
         Connection connection = DatabaseManager.getConnection();
@@ -189,12 +170,6 @@ public class StorageManager {
         return address.length() >= 5;
     }
 
-    // prints all units saved in StorageUnit array
-    public void showAllUnits() {
-        for (StorageUnit unit : units) {
-            System.out.println(unit);
-        }
-    }
 
     // prints all units saved in StorageUnit array DATABASE VERSION
     public void showAllUnitsDatabase() {
@@ -231,23 +206,6 @@ public class StorageManager {
         } catch (SQLException e) {
             System.out.println("Unable to create statement.");
             System.out.println(e.getMessage());
-        }
-    }
-
-    // Select a unit number and print unit info from StorageUnit Array
-    public void viewUnitByNumber(int unitNumber) {
-        boolean found = false;
-
-        for (StorageUnit unit : units) {
-            if (unit.unitNumber == unitNumber) {
-                System.out.println(unit);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            System.out.println("Unit can't be found.");
         }
     }
 
@@ -298,53 +256,132 @@ public class StorageManager {
     }
 
     // Displays units that are vacant
-    public void showVacantUnits (){
-        boolean foundVac = false;
+    public void showVacantUnitsDatabase (){
+       Connection connection = DatabaseManager.getConnection();
 
-        for (StorageUnit unit: units) {
-            if (!unit.occupied) {
-                System.out.println(unit);
-                foundVac = true;
-            }
+       String sql = """
+                          SELECT
+                               su.unit_number,
+                               ut.size,
+                               ut.base_rate
+                           FROM storage_units su
+                           JOIN unit_types ut
+                               ON su.type_id = ut.type_id
+                           WHERE su.occupied = FALSE;
+               """;
 
-        }
-        if (!foundVac) {
-            System.out.println("All units occupied");
-        }
+       try {
+           PreparedStatement pS = connection.prepareStatement(sql);
+           ResultSet results = pS.executeQuery();
+
+           boolean found = false;
+
+                   while(results.next()) {
+                       found = true;
+
+                       int unitNumber = results.getInt("unit_number");
+                       String size = results.getString("size");
+                       double rate = results.getDouble("base_rate");
+
+                       System.out.println(unitNumber + " | " + size + " | $" + rate);
+                   }
+
+                   if (!found) {
+                       System.out.println("No vacant units available.");
+                   }
+       } catch (SQLException e) {
+           System.out.println("Unable to display vacant units.");
+           System.out.println(e.getMessage());
+       }
     }
 
     // Displays units that are occupied
-    public void showOccupiedUnits (){
-        boolean foundOcc = false;
+    public void showOccupiedUnitsDatabase (){
+        Connection connection = DatabaseManager.getConnection();
 
-        for (StorageUnit unit: units) {
-            if (unit.occupied) {
-                System.out.println(unit);
-                foundOcc = true;
+        String sql = """
+                SELECT
+                    su.unit_number,
+                    ut.size,
+                    ut.base_rate,
+                    su.customer_id,
+                    c.customer_number,
+                    c.name
+                FROM storage_units su
+                JOIN unit_types ut
+                    ON su.type_id = ut.type_id
+                JOIN customers c
+                    ON su.customer_id = c.customer_id
+                WHERE su.occupied = TRUE;
+               """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+            ResultSet results = pS.executeQuery();
+
+            boolean found = false;
+
+            while(results.next()) {
+                found = true;
+
+                int unitNumber = results.getInt("unit_number");
+                String size = results.getString("size");
+                double rate = results.getDouble("base_rate");
+                int customerId = results.getInt("customer_id");
+                String customerNumber = results.getString("customer_number");
+                String customerName = results.getString("name");
+
+
+                System.out.println(unitNumber + " | " + size + " | $" + rate + " | Customer ID: " + customerId + " | " + customerNumber + " | " + customerName);
             }
 
-        }
-        if (!foundOcc) {
-            System.out.println("No occupied units found ");
+            if (!found) {
+                System.out.println("No occupied units available.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Unable to display occupied units.");
+            System.out.println(e.getMessage());
         }
     }
 
     // Search up unit size and it will display units that are matched in size
-    public void showUnitsBySize(String size) {
-        //System.out.println("Unit By Size");
-        //input.nextLine(); //to buffer out previous scanner input for ' ' taken
-        boolean sizeMatch = false;
+    public void showUnitsBySizeDatabase(String size) {
+        Connection connection = DatabaseManager.getConnection();
 
-        //System.out.println("Type in size");
-        //String SearchSize = input.nextLine();
-        for (StorageUnit unit: units){
-            if (unit.size.equalsIgnoreCase(size)){
-                System.out.println(unit);
-                sizeMatch = true;
+        String sql = """
+                          SELECT
+                               su.unit_number,
+                               ut.size,
+                               ut.base_rate
+                           FROM storage_units su
+                           JOIN unit_types ut
+                               ON su.type_id = ut.type_id
+                           WHERE ut.size = ?;
+               """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+            pS.setString(1, size);
+            ResultSet results = pS.executeQuery();
+
+            boolean found = false;
+
+            while(results.next()) {
+                found = true;
+
+                int unitNumber = results.getInt("unit_number");
+                String unitSize = results.getString("size");
+                double rate = results.getDouble("base_rate");
+
+                System.out.println(unitNumber + " | " + unitSize + " | $" + rate);
             }
-        }
-        if (!sizeMatch){
-            System.out.println("No units found with that size!");
+
+            if (!found) {
+                System.out.println("No units found with size + " + size);
+            }
+        } catch (SQLException e) {
+            System.out.println("Unable to display units of this size " + size);
+            System.out.println(e.getMessage());
         }
     }
 
@@ -389,213 +426,199 @@ public class StorageManager {
         }
     }
 
-    // Saves Storage unit info into txt file
-    public void saveUnitInfo(){
-        try {
-            PrintWriter saver = new PrintWriter("units.txt");
-
-            for (StorageUnit unit: units){
-                saver.println(
-                        unit.unitNumber + "," +
-                                unit.size + "," +
-                                unit.occupied + "," +
-                                unit.monthlyRate + "," +
-                                unit.tenant
-                );
-            }
-            saver.close();
-            System.out.println("Units saved. ");
-        }
-        catch (FileNotFoundException e) { 
-            System.out.println("Error saving file.");
-        }
-
-    }
-
-    // Scan and reads txt file and reads line by line to parse strings separated by ',' into different data variations
-    public void loadSavedUnits(){
-        try {
-            File file = new File("units.txt");
-            Scanner fileReader = new Scanner(file);
-
-            while (fileReader.hasNextLine()) {
-                String line = fileReader.nextLine();
-
-                String[] parts = line.split(",");
-
-                int unitNumber = Integer.parseInt(parts[0]);
-                String size = parts[1];
-                boolean occupied = Boolean.parseBoolean(parts[2]);
-                double monthlyRate = Double.parseDouble(parts[3]);
-                String tenant = parts[4];
-
-                StorageUnit unit = new StorageUnit(unitNumber,size,occupied,monthlyRate,tenant);
-
-                units.add(unit);
-            }
-            fileReader.close();
-            System.out.println("Loaded saved units successfully. ");
-
-        }
-        catch (FileNotFoundException e) {
-            System.out.println("Saved units not found.");
-        }
-    }
-
-    // Deletes unit by searching for unit number
-    public void deleteUnitByNumber(int unitNumber) {
-        boolean removed = false;
-
-        for (int i = 0 ; i < units.size(); i++){
-            if (units.get(i).unitNumber == unitNumber) {
-                units.remove(i);
-                removed = true;
-                System.out.println("Unit deleted Successfully.");
-                break;
-            }
-        }
-
-        if (!removed) {
-            System.out.println("Unit not found. ");
-        }
-    }
-
     // Searches SorageUnit Array and updates unit monthly rate
-    public void updateRentalRate(int unitNumber, double newRate) {
-        boolean found = false;
-        for (StorageUnit unit: units){
-            if (unit.unitNumber == unitNumber) {
-                found = true;
-                unit.monthlyRate = newRate;
-                System.out.println("Rent changed successfully. ");
-                return;
+    public void updateRentalRateDatabase(String size, double newRate) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+            UPDATE unit_types
+            SET base_rate = ?
+            WHERE size = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setDouble(1, newRate);
+            pS.setString(2, size);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Rental rate for " + size + " updated to $" + newRate
+                );
+            } else {
+                System.out.println("Unit size not found.");
             }
 
-        }
-        if (!found){
-            System.out.println("Unit can't be found. ");
+        } catch (SQLException e) {
+            System.out.println("Unable to update rental rate.");
+            System.out.println(e.getMessage());
         }
     }
 
     // Searches StorageUnit Array and updates unit monthly rate
-    public void updateTenantName(int unitNumber, String newName) {
-        boolean found = false;
-        for (StorageUnit unit: units){
-            if (unit.unitNumber == unitNumber) {
-                found = true;
-                unit.tenant = newName;
-                System.out.println("Tenant name changed successfully. ");
-                return;
+    public void updateCustomerNameDatabase(String customerNumber, String newName) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+            UPDATE customers
+            SET name = ?
+            WHERE customer_number = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setString(1, newName);
+            pS.setString(2, customerNumber);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+            System.out.println("Customer name updated successfully.");
+            } else {
+                System.out.println("Customer number not found.");
             }
 
-        }
-        if (!found){
-            System.out.println("Unit can't be found. ");
+        } catch (SQLException e) {
+            System.out.println("Unable to update customer name.");
+            System.out.println(e.getMessage());
         }
     }
 
     // Moves out tenant and marks storage as vacant
-    public void moveOutUnit(int unitNumber) {
-        //boolean found = false;
+    public void moveOutUnitDatabase(int unitNumber) {
+        Connection connection = DatabaseManager.getConnection();
 
-        for (StorageUnit unit: units){
-            if (unit.unitNumber == unitNumber) {
-                //found = true;
-                unit.occupied = false;
-                unit.tenant = "Vacant";
-                System.out.println("Unit vacated");
-                return;
+        String sql = """
+                UPDATE storage_units
+                SET occupied = FALSE,
+                    customer_id = NULL
+                WHERE unit_number = ?;
+                """;
+
+        try{
+            PreparedStatement pS = connection.prepareStatement(sql);
+            pS.setInt(1, unitNumber);
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Unit " + unitNumber + " has been vacated.");
+            } else {
+                System.out.println("Unit not found.");
             }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to vacate unit.");
+            System.out.println(e.getMessage());
         }
-
-            System.out.println("Unit not found. ");
-
     }
 
     // Prints fincancial report
-    public void showFinancialReport() {
-        int totalUnits = units.size(); //size is array class method
-        int occupiedUnits = 0;
-        int vacantUnits = 0;
-        double monthlyRevenue = 0;
+    public void showFinancialReportDatabase() {
+        Connection connection = DatabaseManager.getConnection();
 
-        double revenueFor5x3 = 0;
-        double revenueFor5x5 = 0;
-        double revenueFor5x10 = 0;
-        double revenueFor10x10 = 0;
-        double revenueFor10x15 = 0;
-        double revenueFor10x20 = 0;
+        String totalsSql = """
+            SELECT
+                COUNT(*) AS total_units,
+                SUM(CASE WHEN su.occupied = TRUE THEN 1 ELSE 0 END) AS occupied_units,
+                SUM(CASE WHEN su.occupied = FALSE THEN 1 ELSE 0 END) AS vacant_units,
+                COALESCE(
+                    SUM(CASE
+                        WHEN su.occupied = TRUE THEN ut.base_rate
+                        ELSE 0
+                    END),
+                    0
+                ) AS monthly_revenue
+            FROM storage_units su
+            JOIN unit_types ut
+                ON su.type_id = ut.type_id;
+            """;
 
-        for (StorageUnit unit : units) {
-            if (unit.occupied) {
-                occupiedUnits++;
-                monthlyRevenue += unit.monthlyRate;
+        String breakdownSql = """
+            SELECT
+                ut.size,
+                COUNT(*) AS occupied_units,
+                SUM(ut.base_rate) AS revenue_by_size
+            FROM storage_units su
+            JOIN unit_types ut
+                ON su.type_id = ut.type_id
+            WHERE su.occupied = TRUE
+            GROUP BY ut.size
+            ORDER BY ut.size;
+            """;
 
-                switch (unit.size) { //switch case doesn't need equalsIgnoreCase method because size String predermined in getSizeByChoice
-                    case "5x3":
-                        revenueFor5x3 += unit.monthlyRate;
-                        break;
+        try {
+            PreparedStatement totalStatement =
+                    connection.prepareStatement(totalsSql);
 
-                    case "5x5":
-                        revenueFor5x5 += unit.monthlyRate;
-                        break;
+            ResultSet resultsOverallReport =
+                    totalStatement.executeQuery();
 
-                    case "5x10":
-                        revenueFor5x10 += unit.monthlyRate;
-                        break;
+            if (resultsOverallReport.next()) {
+                int totalUnits = resultsOverallReport.getInt("total_units");
 
-                    case "10x10":
-                        revenueFor10x10 += unit.monthlyRate;
-                        break;
+                int occupiedUnits = resultsOverallReport.getInt("occupied_units");
 
-                    case "10x15":
-                        revenueFor10x15 += unit.monthlyRate;
-                        break;
+                int vacantUnits = resultsOverallReport.getInt("vacant_units");
 
-                    case "10x20":
-                        revenueFor10x20 += unit.monthlyRate;
-                        break;
+                double monthlyRevenue = resultsOverallReport.getDouble("monthly_revenue");
 
+                double occupancyRate = 0;
+
+                if (totalUnits > 0) {
+                    occupancyRate =
+                            ((double) occupiedUnits / totalUnits) * 100;
                 }
-               /* if (unit.size.equalsIgnoreCase("5x3")) {
-                    revenueFor5x3 += unit.monthlyRate;
-                } else if (unit.size.equalsIgnoreCase("5x5")) {
-                    revenueFor5x5 += unit.monthlyRate;
-                } else if (unit.size.equalsIgnoreCase("5x10")) {
-                    revenueFor5x10 += unit.monthlyRate;
-                } else if (unit.size.equalsIgnoreCase("10x10")) {
-                    revenueFor10x10 += unit.monthlyRate;
-                } else if (unit.size.equalsIgnoreCase("10x15")) {
-                    revenueFor10x15 += unit.monthlyRate;
-                } else if (unit.size.equalsIgnoreCase("10x20")) {
-                    revenueFor10x20 += unit.monthlyRate;
-                }*/
-            } else {
-                vacantUnits++;
+
+                System.out.println("===== Storage Financial Report =====");
+                System.out.println("Total Units: " + totalUnits);
+                System.out.println("Occupied Units: " + occupiedUnits);
+                System.out.println("Vacant Units: " + vacantUnits);
+
+                System.out.printf(
+                        "Occupancy Rate: %.2f%%%n", occupancyRate
+                );
+
+                System.out.printf(
+                        "Monthly Revenue: $%.2f%n", monthlyRevenue
+                );
             }
+
+            PreparedStatement breakdownStatement = connection.prepareStatement(breakdownSql);
+
+            ResultSet resultsRevenueBySize = breakdownStatement.executeQuery();
+
+            boolean found = false;
+
+            System.out.println("\n===== Revenue by Size =====");
+
+            while (resultsRevenueBySize.next()) {
+                found = true;
+
+                String size = resultsRevenueBySize.getString("size");
+
+                int occupied = resultsRevenueBySize.getInt("occupied_units");
+
+                double revenue = resultsRevenueBySize.getDouble("revenue_by_size");
+
+                System.out.printf(
+                        "%s | Occupied: %d | Revenue: $%.2f%n",
+                        size,
+                        occupied,
+                        revenue
+                );
+            }
+
+            if (!found) {
+                System.out.println("No occupied units generating revenue.");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Unable to load financial report.");
+            System.out.println(e.getMessage());
         }
-
-        double occupancyRate = 0;
-
-        if (totalUnits > 0) {
-            occupancyRate = ((double) occupiedUnits / totalUnits) * 100;
-        }
-
-        System.out.println("===== Storage Report =====");
-        System.out.println("Total Units: " + totalUnits);
-        System.out.println("Occupied Units: " + occupiedUnits);
-        System.out.println("Vacant Units: " + vacantUnits);
-        System.out.println("Occupancy Rate: " + occupancyRate + "%");
-        System.out.println("Monthly Revenue: $" + monthlyRevenue);
-        System.out.println("\n");
-        System.out.println("Revenue Breakdown By Unit Size:");
-        System.out.println("Revenue for 5x3: $" + revenueFor5x3);
-        System.out.println("Revenue for 5x5: $" + revenueFor5x5);
-        System.out.println("Revenue for 5x10: $" + revenueFor5x10);
-        System.out.println("Revenue for 10x10: $" + revenueFor10x10);
-        System.out.println("Revenue for 10x15: $" + revenueFor10x15);
-        System.out.println("Revenue for 10x20: $" + revenueFor10x20);
-
     }
 
 }
