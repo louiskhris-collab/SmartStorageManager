@@ -1,4 +1,3 @@
-//import java.util.ArrayList;
 import java.util.Scanner;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -88,9 +87,6 @@ public class Main {
                     int searchNumber = input.nextInt();
 
                     manager.viewUnitByNumberDatabase(searchNumber);
-
-                    //manager.viewUnitByNumber(searchNumber);
-
                     break;
 
                 case 3:

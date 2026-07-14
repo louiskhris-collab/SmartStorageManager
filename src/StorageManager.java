@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.sql.ResultSet;
@@ -171,7 +170,7 @@ public class StorageManager {
     }
 
 
-    // prints all units saved in StorageUnit array DATABASE VERSION
+    // prints all units saved in StorageUnit DATABASE VERSION
     public void showAllUnitsDatabase() {
 
         Connection connection = DatabaseManager.getConnection();
@@ -209,7 +208,7 @@ public class StorageManager {
         }
     }
 
-    // Select a unit number and print unit info from StorageUnit Array DATABASE VERSION
+    // Select a unit number and print unit info from StorageUnit DATABASE VERSION
     public void viewUnitByNumberDatabase(int unitNumber) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -426,7 +425,7 @@ public class StorageManager {
         }
     }
 
-    // Searches SorageUnit Array and updates unit monthly rate
+    // Searches SorageUnit and updates unit monthly rate
     public void updateRentalRateDatabase(String size, double newRate) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -457,7 +456,7 @@ public class StorageManager {
         }
     }
 
-    // Searches StorageUnit Array and updates unit monthly rate
+    // Searches StorageUnit and updates unit monthly rate
     public void updateCustomerNameDatabase(String customerNumber, String newName) {
         Connection connection = DatabaseManager.getConnection();
 
