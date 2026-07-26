@@ -425,6 +425,13 @@ public class StorageManager {
         }
     }
 
+    // Seach Customer by phone
+    public void searchCustomerByPhoneDatabase(String phone) {
+        System.out.println(
+                "Searching for customer with phone number: " + phone
+        );
+    }
+
     // Searches SorageUnit and updates unit monthly rate
     public void updateRentalRateDatabase(String size, double newRate) {
         Connection connection = DatabaseManager.getConnection();

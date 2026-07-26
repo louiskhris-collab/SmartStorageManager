@@ -1,77 +1,82 @@
 import java.util.Scanner;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
+
     public static void main(String[] args) {
+
         DatabaseManager.getConnection();
 
         StorageManager manager = new StorageManager();
-
         Scanner input = new Scanner(System.in);
 
         int option = 0;
 
-        while(option != 10){
-            System.out.println("=====================");
-            System.out.println("==Storage Manager Menu==");
-            System.out.println("1. Register new customer to unit");
-            System.out.println("2. View Storage Unit");
+        // The program continues until the user selects option 9.
+        while (option != 9) {
+
+            System.out.println("\n==========================");
+            System.out.println("   STORAGE MANAGER MENU");
+            System.out.println("==========================");
+            System.out.println("1. Rent Unit");
+            System.out.println("2. View Unit");
             System.out.println("3. Show All Units");
-            System.out.println("4. Search Unit By Filter");
-            System.out.println("5. Vacate Unit");
-            System.out.println("6. Show Financial Report");
-            System.out.println("7. Update Unit Rate ");
-            System.out.println("8. Update Tenant name");
-            System.out.println("9. Save and Exit ");
+            System.out.println("4. Filter Units");
+            System.out.println("5. Move Out Unit");
+            System.out.println("6. Financial Report");
+            System.out.println("7. Update Rental Rate");
+            System.out.println("8. Customer Management");
+            System.out.println("9. Exit");
+            System.out.print("Enter choice: ");
 
-            System.out.println("Enter choice: ");
-            System.out.println("=====================");
+            option = input.nextInt();
 
-            option = input.nextInt();// when pressing a number it also adds a \n. So it will skip next input with a " "
+            switch (option) {
 
-            switch (option){
                 case 1:
-
-                    System.out.println("Enter a unit to rent. ");
+                    System.out.print("Enter a unit to rent: ");
                     int chooseUnitNumber = input.nextInt();
 
-                    input.nextLine(); //break
+                    // Clears the newline left by nextInt().
+                    input.nextLine();
 
                     if (!manager.isUnitAvailableDatabase(chooseUnitNumber)) {
-                        System.out.println("Unit is occupied: ");
+                        System.out.println("Unit is occupied or unavailable.");
                         break;
                     }
 
                     System.out.print("Enter customer name: ");
                     String name = input.nextLine();
-                         if (!manager.isValidName(name)){
-                            System.out.println("Invalid name");
-                            break;
+
+                    if (!manager.isValidName(name)) {
+                        System.out.println("Invalid name.");
+                        break;
                     }
 
                     System.out.print("Enter address: ");
                     String address = input.nextLine();
-                        if (!manager.isValidAddress(address)) {
-                            System.out.println("Invalid Address");
-                            break;
-                        }
+
+                    if (!manager.isValidAddress(address)) {
+                        System.out.println("Invalid address.");
+                        break;
+                    }
 
                     System.out.print("Enter email: ");
                     String email = input.nextLine();
-                        if (!manager.isValidEmail(email)){
-                            System.out.printf("Invalid email address");
-                            break;
-                        }
+
+                    if (!manager.isValidEmail(email)) {
+                        System.out.println("Invalid email address.");
+                        break;
+                    }
 
                     System.out.print("Enter phone: ");
                     String phone = input.nextLine();
-                        if (!manager.isValidPhoneNumber(phone)){
-                            System.out.println("invalid phone number");
-                            break;
-                        }
 
-                   int customerId = manager.addCustomerDatabase(name, address, email, phone);
+                    if (!manager.isValidPhoneNumber(phone)) {
+                        System.out.println("Invalid phone number.");
+                        break;
+                    }
+
+                    int customerId = manager.addCustomerDatabase(name, address, email, phone);
 
                     if (customerId != -1) {
                         manager.assignCustomerToUnitDatabase(customerId, chooseUnitNumber);
@@ -79,9 +84,8 @@ public class Main {
 
                     break;
 
-
                 case 2:
-                    System.out.println("View Storage Unit Selected");
+                    System.out.println("\nView Storage Unit");
 
                     System.out.print("Enter unit number: ");
                     int searchNumber = input.nextInt();
@@ -90,55 +94,60 @@ public class Main {
                     break;
 
                 case 3:
-                    System.out.println("Show All Units Selected");
+                    System.out.println("\nAll Storage Units");
                     manager.showAllUnitsDatabase();
                     break;
 
                 case 4:
-                    System.out.println("Search Unit By Filter Selected");
-
                     int filter = 0;
 
-                    while (filter != 4){
-                        System.out.println("=====================");
-                        System.out.println("==Search By Filter==");
-                        System.out.println("1. Vacant Units ");
-                        System.out.println("2. Occupied Units");
-                        System.out.println("3. Unit By Size");
-                        System.out.println("4. Exit");
+                    while (filter != 4) {
 
-                        System.out.println("Enter choice: ");
-                        System.out.println("=====================");
+                        System.out.println("\n==========================");
+                        System.out.println("     SEARCH BY FILTER");
+                        System.out.println("==========================");
+                        System.out.println("1. Vacant Units");
+                        System.out.println("2. Occupied Units");
+                        System.out.println("3. Units By Size");
+                        System.out.println("4. Back");
+                        System.out.print("Enter choice: ");
 
                         filter = input.nextInt();
 
-                        switch (filter){
+                        switch (filter) {
+
                             case 1:
                                 manager.showVacantUnitsDatabase();
-                                 break;
+                                break;
 
                             case 2:
                                 manager.showOccupiedUnitsDatabase();
                                 break;
 
                             case 3:
-                                System.out.println("Unit By Size");
-                                input.nextLine(); //to buffer out previous scanner input for ' ' taken
+                                // Clears the newline left by nextInt().
+                                input.nextLine();
 
-                                System.out.println("Type in size");
+                                System.out.print("Enter unit size: ");
                                 String sizeInput = input.nextLine();
+
                                 manager.showUnitsBySizeDatabase(sizeInput);
                                 break;
 
                             case 4:
-                                System.out.println("Back to Home Menu");
+                                System.out.println("Returning to the main menu.");
                                 break;
+
+                            default:
+                                System.out.println("Invalid filter option.");
                         }
                     }
+
                     break;
 
                 case 5:
-                    System.out.println("Enter a unit number to vacate");
+                    System.out.print("Enter the unit number to vacate: ");
+
                     int vacateUnit = input.nextInt();
 
                     manager.moveOutUnitDatabase(vacateUnit);
@@ -146,12 +155,13 @@ public class Main {
 
                 case 6:
                     manager.showFinancialReportDatabase();
-                    System.out.println("Exiting to financial reports");
                     break;
 
                 case 7:
+                    // Clears the newline left by nextInt().
+                    input.nextLine();
+
                     System.out.print("Enter unit size: ");
-                    input.nextLine(); // buffer input
                     String sizeToUpdate = input.nextLine();
 
                     System.out.print("Enter new rental rate: ");
@@ -161,31 +171,110 @@ public class Main {
                     break;
 
                 case 8:
-                    input.nextLine(); // clears newline left by nextInt()
-
-                    System.out.print("Enter customer number: ");
-                    String customerNumber = input.nextLine();
-
-                    System.out.print("Enter new customer name: ");
-                    String newName = input.nextLine();
-
-                    manager.updateCustomerNameDatabase(customerNumber, newName);
+                    customerManagementMenu(manager, input);
                     break;
 
-
                 case 9:
-                    System.out.println("Exiting Program...");
+                    System.out.println("Exiting program...");
                     break;
 
                 default:
-                    System.out.println("Invalid Choice");
+                    System.out.println("Invalid choice. Please select 1 through 9.");
             }
         }
 
         input.close();
+    }
+
+    /*
+     * Displays the main Customer Management menu.
+     *
+     * This method handles only the menu and user input.
+     * It does not contain database code.
+     */
+    public static void customerManagementMenu(StorageManager manager, Scanner input) {
+
+        int choice = 0;
+
+        while (choice != 2) {
+
+            System.out.println("\n==========================");
+            System.out.println("   CUSTOMER MANAGEMENT");
+            System.out.println("==========================");
+            System.out.println("1. Search Customer");
+            System.out.println("2. Back");
+            System.out.print("Choose an option: ");
+
+            choice = input.nextInt();
+            input.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    customerSearchMenu(manager, input);
+                    break;
+
+                case 2:
+                    System.out.println("Returning to the main menu.");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please try again.");
             }
         }
+    }
 
-        //StorageUnit unit1 = new StorageUnit(1001,"10x15", false, 175);
-       // System.out.println(unit1.toString());
+    /*
+     * Allows the employee to choose how to search
+     * for a customer.
+     */
+    public static void customerSearchMenu(StorageManager manager, Scanner input) {
 
+        int choice = 0;
+
+        while (choice != 5) {
+
+            System.out.println("\n==========================");
+            System.out.println("      SEARCH CUSTOMER");
+            System.out.println("==========================");
+            System.out.println("1. Search by Phone Number");
+            System.out.println("2. Search by Customer Number");
+            System.out.println("3. Search by Name");
+            System.out.println("4. Search by Unit Number");
+            System.out.println("5. Back");
+            System.out.print("Choose an option: ");
+
+            choice = input.nextInt();
+            input.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    System.out.print("Enter phone number: ");
+                    String phone = input.nextLine();
+
+                    manager.searchCustomerByPhoneDatabase(phone);
+                    break;
+
+                case 2:
+                    System.out.println("Customer-number search will be added next.");
+                    break;
+
+                case 3:
+                    System.out.println("Customer-name search will be added later.");
+                    break;
+
+                case 4:
+                    System.out.println("Unit-number search will be added later.");
+                    break;
+
+                case 5:
+                    System.out.println("Returning to Customer Management.");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+}
