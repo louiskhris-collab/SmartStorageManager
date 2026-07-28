@@ -1,13 +1,11 @@
-import com.mysql.cj.protocol.a.LocalDateValueEncoder;
-import com.sun.source.tree.WhileLoopTree;
-import org.w3c.dom.ls.LSOutput;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.*;
 import java.util.Random;
 import java.util.Scanner;
 import java.sql.ResultSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class StorageManager {
 
@@ -426,12 +424,61 @@ public class StorageManager {
     }
 
     // Seach Customer by phone
-    public void searchCustomerByPhoneDatabase(String phone) {
-        System.out.println(
-                "Searching for customer with phone number: " + phone
-        );
-    }
+    public int searchCustomerByPhoneDatabase(String phone) {
+        //Connection connection = DatabaseManager.getConnection();
 
+        String sql =
+                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
+                        "c.email, c.phone, su.unit_number, " +
+                        "ut.size, ut.base_rate " +
+                          "FROM customers c " +
+                        "LEFT JOIN storage_units su " +
+                        "ON c.customer_id = su.customer_id " +
+                        "LEFT JOIN unit_types ut " +
+                        "ON su.type_id = ut.type_id " +
+                        "WHERE c.phone = ?";
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, phone);
+
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+
+                System.out.println("\n==============================");
+                System.out.println("       CUSTOMER FOUND");
+                System.out.println("==============================");
+                System.out.println("Customer Number: " + results.getString("customer_number"));
+                System.out.println("Name: " + results.getString("name"));
+                System.out.println("Address: " + results.getString("address"));
+                System.out.println("Email: " + results.getString("email"));
+                System.out.println("Phone: " + results.getString("phone"));
+
+                int customerId = results.getInt("customer_id");
+                int unitNumber = results.getInt("unit_number");
+
+                if (results.wasNull()) {
+                    System.out.println("Current Unit: None");
+                } else {
+                    System.out.println("Current Unit: " + unitNumber);
+                    System.out.println("Unit Size: " + results.getString("size"));
+                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
+                }
+                System.out.println("==============================");
+                return customerId;
+
+            } else {
+                System.out.println("No customer found with that phone number.");
+                return -1;
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to search for customer.");
+            exception.printStackTrace();
+            return -1;
+        }
+    }
     // Searches SorageUnit and updates unit monthly rate
     public void updateRentalRateDatabase(String size, double newRate) {
         Connection connection = DatabaseManager.getConnection();
@@ -463,21 +510,27 @@ public class StorageManager {
         }
     }
 
-    // Searches StorageUnit and updates unit monthly rate
-    public void updateCustomerNameDatabase(String customerNumber, String newName) {
+    // Update customer Name
+    public void updateCustomerName(int customerId, String name) {
         Connection connection = DatabaseManager.getConnection();
+
+        if (!isValidName(name)) {
+            System.out.println("Invalid name format: ");
+            //System.out.println("Reference for correct format: XXX-XXX-XXXX ");
+            return;
+        }
 
         String sql = """
             UPDATE customers
             SET name = ?
-            WHERE customer_number = ?;
+            WHERE customer_id = ?;
             """;
 
         try {
             PreparedStatement pS = connection.prepareStatement(sql);
 
-            pS.setString(1, newName);
-            pS.setString(2, customerNumber);
+            pS.setString(1, name);
+            pS.setInt(2, customerId);
 
             int rowsUpdated = pS.executeUpdate();
 
@@ -487,12 +540,119 @@ public class StorageManager {
                 System.out.println("Customer number not found.");
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException exception) {
             System.out.println("Unable to update customer name.");
-            System.out.println(e.getMessage());
+            exception.printStackTrace();
         }
     }
 
+    // Update Customer Address
+    public void updateCustomerAddress(int customerId, String address) {
+        Connection connection = DatabaseManager.getConnection();
+
+        if (!isValidAddress(address)) {
+            System.out.println("Invalid address format: ");
+            //System.out.println("Reference for correct format: XXX-XXX-XXXX ");
+            return;
+        }
+
+        String sql = """
+            UPDATE customers
+            SET address = ?
+            WHERE customer_id = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setString(1, address);
+            pS.setInt(2, customerId);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Customer address updated successfully.");
+            } else {
+                System.out.println("Customer number not found.");
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to update customer Address.");
+            exception.printStackTrace();
+        }
+    }
+
+    //Update customer email
+    public void updateCustomerEmail(int customerId, String email) {
+        Connection connection = DatabaseManager.getConnection();
+
+        if (!isValidEmail(email)) {
+            System.out.println("Invalid email format: ");
+            //System.out.println("Reference for correct format: XXX-XXX-XXXX ");
+            return;
+        }
+
+        String sql = """
+            UPDATE customers
+            SET email = ?
+            WHERE customer_id = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setString(1, email);
+            pS.setInt(2, customerId);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Customer email updated successfully.");
+            } else {
+                System.out.println("Customer number not found.");
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to update customer email.");
+            exception.printStackTrace();
+        }
+    }
+
+    public void updateCustomerPhone(int customerId, String phone) {
+        Connection connection = DatabaseManager.getConnection();
+
+        if (!isValidPhoneNumber(phone)) {
+            System.out.println("Invalid Phone Number format: ");
+            System.out.println("Reference for correct format: XXX-XXX-XXXX ");
+            return;
+        }
+
+        String sql = """
+            UPDATE customers
+            SET phone = ?
+            WHERE customer_id = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+
+            pS.setString(1, phone);
+            pS.setInt(2, customerId);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Customer phone number updated successfully.");
+            } else {
+                System.out.println("Customer number not found.");
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to update customer phone number.");
+            exception.printStackTrace();
+        }
+    }
     // Moves out tenant and marks storage as vacant
     public void moveOutUnitDatabase(int unitNumber) {
         Connection connection = DatabaseManager.getConnection();

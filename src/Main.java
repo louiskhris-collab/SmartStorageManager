@@ -186,12 +186,10 @@ public class Main {
         input.close();
     }
 
-    /*
-     * Displays the main Customer Management menu.
-     *
-     * This method handles only the menu and user input.
-     * It does not contain database code.
-     */
+
+     //* Displays the main Customer Management menu.
+     //* This method handles only the menu and user input.
+
     public static void customerManagementMenu(StorageManager manager, Scanner input) {
 
         int choice = 0;
@@ -224,10 +222,6 @@ public class Main {
         }
     }
 
-    /*
-     * Allows the employee to choose how to search
-     * for a customer.
-     */
     public static void customerSearchMenu(StorageManager manager, Scanner input) {
 
         int choice = 0;
@@ -253,7 +247,11 @@ public class Main {
                     System.out.print("Enter phone number: ");
                     String phone = input.nextLine();
 
-                    manager.searchCustomerByPhoneDatabase(phone);
+                    int customerId = manager.searchCustomerByPhoneDatabase(phone);
+
+                    if (customerId != -1) {
+                        customerActionMenu(manager, input, customerId);
+                    }
                     break;
 
                 case 2:
@@ -274,6 +272,99 @@ public class Main {
 
                 default:
                     System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    public static void customerActionMenu(StorageManager manager, Scanner input, int customerId) {
+
+        int choice;
+
+        do {
+            System.out.println("\n=== Customer Actions ===");
+            System.out.println("1. Update Customer");
+            System.out.println("2. Move Out Customer");
+            System.out.println("3. Return");
+
+            System.out.print("Choose an option: ");
+            choice = input.nextInt();
+            input.nextLine();
+
+            switch (choice) {
+                case 1:
+                    updateCustomerMenu(manager, input, customerId);
+                    break;
+
+                case 2:
+                    System.out.println("Move out customer " + customerId);
+                    break;
+
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+
+                default:
+                    System.out.println("Invalid option.");
+            }
+
+        } while (choice != 3);
+    }
+
+    public static void updateCustomerMenu(StorageManager manager, Scanner input, int customerId) {
+
+        int choice = 0;
+
+        while (choice != 5) {
+
+            System.out.println("\n==========================");
+            System.out.println("    UPDATE CUSTOMER");
+            System.out.println("===========================");
+            System.out.println("1. Update Name");
+            System.out.println("2. Update Address");
+            System.out.println("3. Update Email");
+            System.out.println("4. Update Phone Number");
+            System.out.println("5. Return");
+            System.out.print("Choose an option: ");
+
+            choice = input.nextInt();
+            input.nextLine();
+
+            switch (choice) {
+
+                case 1:
+                    System.out.println("Update customer name: ");
+                    String newName = input.nextLine();
+
+                    manager.updateCustomerName(customerId, newName);
+                    break;
+
+                case 2:
+                    System.out.println("Update Address selected.");
+                    String newAddress = input.nextLine();
+
+                    manager.updateCustomerAddress(customerId, newAddress);
+                    break;
+
+                case 3:
+                    System.out.println("Update Email selected.");
+                    String newEmail = input.nextLine();
+
+                    manager.updateCustomerEmail(customerId, newEmail);
+                    break;
+
+                case 4:
+                    System.out.println("Update Phone selected.");
+                    String newPhone = input.nextLine();
+
+                    manager.updateCustomerPhone(customerId, newPhone);
+                    break;
+
+                case 5:
+                    System.out.println("Returning...");
+                    break;
+
+                default:
+                    System.out.println("Invalid option.");
             }
         }
     }
