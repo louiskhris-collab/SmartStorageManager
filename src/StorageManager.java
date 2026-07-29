@@ -479,7 +479,177 @@ public class StorageManager {
             return -1;
         }
     }
-    // Searches SorageUnit and updates unit monthly rate
+
+    //Search Customer by customer number
+    public int searchCustomerByCustomerNumberDatabase(String customerNumber) {
+        //Connection connection = DatabaseManager.getConnection();
+
+        String sql =
+                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
+                        "c.email, c.phone, su.unit_number, " +
+                        "ut.size, ut.base_rate " +
+                        "FROM customers c " +
+                        "LEFT JOIN storage_units su " +
+                        "ON c.customer_id = su.customer_id " +
+                        "LEFT JOIN unit_types ut " +
+                        "ON su.type_id = ut.type_id " +
+                        "WHERE c.customer_number = ?";
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, customerNumber);
+
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+
+                System.out.println("\n==============================");
+                System.out.println("       CUSTOMER FOUND");
+                System.out.println("==============================");
+                System.out.println("Customer Number: " + results.getString("customer_number"));
+                System.out.println("Name: " + results.getString("name"));
+                System.out.println("Address: " + results.getString("address"));
+                System.out.println("Email: " + results.getString("email"));
+                System.out.println("Phone: " + results.getString("phone"));
+
+                int customerId = results.getInt("customer_id");
+                int unitNumber = results.getInt("unit_number");
+
+                if (results.wasNull()) {
+                    System.out.println("Current Unit: None");
+                } else {
+                    System.out.println("Current Unit: " + unitNumber);
+                    System.out.println("Unit Size: " + results.getString("size"));
+                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
+                }
+                System.out.println("==============================");
+                return customerId;
+
+            } else {
+                System.out.println("No customer found with that customer number.");
+                return -1;
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to search for customer.");
+            exception.printStackTrace();
+            return -1;
+        }
+    }
+
+    public int searchCustomerByCustomerNameDatabase(String searchedName) {
+        //Connection connection = DatabaseManager.getConnection();
+
+        String sql =
+                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
+                        "c.email, c.phone, su.unit_number, " +
+                        "ut.size, ut.base_rate " +
+                        "FROM customers c " +
+                        "LEFT JOIN storage_units su " +
+                        "ON c.customer_id = su.customer_id " +
+                        "LEFT JOIN unit_types ut " +
+                        "ON su.type_id = ut.type_id " +
+                        "WHERE c.name = ?";
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, searchedName);
+
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+
+                System.out.println("\n==============================");
+                System.out.println("       CUSTOMER FOUND");
+                System.out.println("==============================");
+                System.out.println("Customer Number: " + results.getString("customer_number"));
+                System.out.println("Name: " + results.getString("name"));
+                System.out.println("Address: " + results.getString("address"));
+                System.out.println("Email: " + results.getString("email"));
+                System.out.println("Phone: " + results.getString("phone"));
+
+                int customerId = results.getInt("customer_id");
+                int unitNumber = results.getInt("unit_number");
+
+                if (results.wasNull()) {
+                    System.out.println("Current Unit: None");
+                } else {
+                    System.out.println("Current Unit: " + unitNumber);
+                    System.out.println("Unit Size: " + results.getString("size"));
+                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
+                }
+                System.out.println("==============================");
+                return customerId;
+
+            } else {
+                System.out.println("No customer found with that name. ");
+                return -1;
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to search for customer.");
+            exception.printStackTrace();
+            return -1;
+        }
+    }
+
+    public int searchCustomerByUnitNumberDatabase(int searchedUnitNumber) {
+        //Connection connection = DatabaseManager.getConnection();
+
+        String sql =
+                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
+                        "c.email, c.phone, su.unit_number, " +
+                        "ut.size, ut.base_rate " +
+                        "FROM customers c " +
+                        "LEFT JOIN storage_units su " +
+                        "ON c.customer_id = su.customer_id " +
+                        "LEFT JOIN unit_types ut " +
+                        "ON su.type_id = ut.type_id " +
+                        "WHERE su.unit_number = ?";
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, searchedUnitNumber);
+
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+
+                System.out.println("\n==============================");
+                System.out.println("       CUSTOMER FOUND");
+                System.out.println("==============================");
+                System.out.println("Customer Number: " + results.getString("customer_number"));
+                System.out.println("Name: " + results.getString("name"));
+                System.out.println("Address: " + results.getString("address"));
+                System.out.println("Email: " + results.getString("email"));
+                System.out.println("Phone: " + results.getString("phone"));
+
+                int customerId = results.getInt("customer_id");
+                int unitNumber = results.getInt("unit_number");
+
+                if (results.wasNull()) {
+                    System.out.println("Current Unit: None");
+                } else {
+                    System.out.println("Current Unit: " + unitNumber);
+                    System.out.println("Unit Size: " + results.getString("size"));
+                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
+                }
+                System.out.println("==============================");
+                return customerId;
+
+            } else {
+                System.out.println("No customer found with that unit number.");
+                return -1;
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to search for customer.");
+            exception.printStackTrace();
+            return -1;
+        }
+    }
+
+    // Searches StorageUnit and updates unit monthly rate
     public void updateRentalRateDatabase(String size, double newRate) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -618,6 +788,7 @@ public class StorageManager {
         }
     }
 
+    //Update customer phone #
     public void updateCustomerPhone(int customerId, String phone) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -653,7 +824,9 @@ public class StorageManager {
             exception.printStackTrace();
         }
     }
+
     // Moves out tenant and marks storage as vacant
+    //UNUSED
     public void moveOutUnitDatabase(int unitNumber) {
         Connection connection = DatabaseManager.getConnection();
 
@@ -678,6 +851,38 @@ public class StorageManager {
         } catch (SQLException e) {
             System.out.println("Unable to vacate unit.");
             System.out.println(e.getMessage());
+        }
+    }
+
+    //Moves out customer via customerId
+    public void moveOutCustomerDatabase(int customerId) {
+
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+            UPDATE storage_units
+            SET occupied = FALSE,
+                customer_id = NULL
+            WHERE customer_id = ?;
+            """;
+
+        try {
+            PreparedStatement pS = connection.prepareStatement(sql);
+
+            pS.setInt(1, customerId);
+
+            int rowsUpdated = pS.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Customer moved out successfully.");
+                System.out.println("The storage unit is now vacant.");
+            } else {
+                System.out.println("This customer does not have an assigned unit.");
+            }
+
+        } catch (SQLException exception) {
+            System.out.println("Unable to move out customer.");
+            exception.printStackTrace();
         }
     }
 

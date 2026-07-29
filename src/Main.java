@@ -243,7 +243,7 @@ public class Main {
 
             switch (choice) {
 
-                case 1:
+                case 1: {
                     System.out.print("Enter phone number: ");
                     String phone = input.nextLine();
 
@@ -252,18 +252,43 @@ public class Main {
                     if (customerId != -1) {
                         customerActionMenu(manager, input, customerId);
                     }
+                }
                     break;
 
-                case 2:
-                    System.out.println("Customer-number search will be added next.");
+                case 2: {
+                    System.out.println("Enter Customer Number: ");
+                    String customerNumber = input.nextLine();
+
+                    int customerId = manager.searchCustomerByCustomerNumberDatabase(customerNumber);
+
+                    if (customerId != -1) {
+                        customerActionMenu(manager, input, customerId);
+                    }
+                }
                     break;
 
-                case 3:
-                    System.out.println("Customer-name search will be added later.");
+                case 3: {
+                    System.out.println("Enter Customer Name: ");
+                    String customerName = input.nextLine();
+
+                    int customerId = manager.searchCustomerByCustomerNameDatabase(customerName);
+
+                    if (customerId != -1) {
+                        customerActionMenu(manager, input, customerId);
+                    }
+                }
                     break;
 
-                case 4:
-                    System.out.println("Unit-number search will be added later.");
+                case 4: {
+                    System.out.println("Enter customer unit number. ");
+                    int searchUnitNumber = input.nextInt();
+
+                    int customerId = manager.searchCustomerByUnitNumberDatabase(searchUnitNumber);
+
+                    if (customerId != -1) {
+                        customerActionMenu(manager, input, customerId);
+                    }
+                }
                     break;
 
                 case 5:
@@ -297,6 +322,7 @@ public class Main {
 
                 case 2:
                     System.out.println("Move out customer " + customerId);
+                    moveOutCustomerMenu(manager, input, customerId);
                     break;
 
                 case 3:
@@ -366,6 +392,25 @@ public class Main {
                 default:
                     System.out.println("Invalid option.");
             }
+        }
+    }
+
+    public static void moveOutCustomerMenu(StorageManager manager, Scanner input, int customerId) {
+
+        System.out.println("\n==========================");
+        System.out.println("    MOVE OUT CUSTOMER");
+        System.out.println("==========================");
+        System.out.println("This will remove the customer's assigned unit.");
+        System.out.print("Are you sure you want to continue? (Y/N): ");
+
+        String confirmation = input.nextLine().trim();
+
+        if (confirmation.equalsIgnoreCase("Y")) {
+            manager.moveOutCustomerDatabase(customerId);
+        } else if (confirmation.equalsIgnoreCase("N")) {
+            System.out.println("Move out canceled.");
+        } else {
+            System.out.println("Invalid selection. Move out canceled.");
         }
     }
 }
