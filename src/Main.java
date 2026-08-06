@@ -22,7 +22,7 @@ public class Main {
             System.out.println("3. Show All Units");
             System.out.println("4. Filter Units");
             System.out.println("5. Move Out Unit");
-            System.out.println("6. Financial Report");
+            System.out.println("6. Storage Dashboard");
             System.out.println("7. Update Rental Rate");
             System.out.println("8. Customer Management");
             System.out.println("9. Exit");
@@ -154,7 +154,7 @@ public class Main {
                     break;
 
                 case 6:
-                    manager.showFinancialReportDatabase();
+                    manager.showStorageDashboardDatabase();
                     break;
 
                 case 7:
@@ -187,8 +187,8 @@ public class Main {
     }
 
 
-     //* Displays the main Customer Management menu.
-     //* This method handles only the menu and user input.
+     // Displays the main Customer Management menu.
+     // This method handles only the menu and user input.
 
     public static void customerManagementMenu(StorageManager manager, Scanner input) {
 
@@ -309,7 +309,8 @@ public class Main {
             System.out.println("\n=== Customer Actions ===");
             System.out.println("1. Update Customer");
             System.out.println("2. Move Out Customer");
-            System.out.println("3. Return");
+            System.out.println("3. Transfer Customer");
+            System.out.println("4. Return");
 
             System.out.print("Choose an option: ");
             choice = input.nextInt();
@@ -326,6 +327,10 @@ public class Main {
                     break;
 
                 case 3:
+                    transferCustomerMenu(manager, input, customerId);
+                    break;
+
+                case 4:
                     System.out.println("Returning...");
                     break;
 
@@ -333,7 +338,7 @@ public class Main {
                     System.out.println("Invalid option.");
             }
 
-        } while (choice != 3);
+        } while (choice != 4);
     }
 
     public static void updateCustomerMenu(StorageManager manager, Scanner input, int customerId) {
@@ -413,4 +418,31 @@ public class Main {
             System.out.println("Invalid selection. Move out canceled.");
         }
     }
+
+    public static void transferCustomerMenu(StorageManager manager, Scanner input, int customerId) {
+        System.out.println("+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+");
+        System.out.println("        TRANSFER CUSTOMER           ");
+        System.out.println("+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_");
+
+        System.out.println("Enter new unit number: ");
+        int newUnitNumber = input.nextInt();
+        input.nextLine(); //Buffer input before next input
+
+        if (!manager.isUnitAvailableDatabase(newUnitNumber)) {
+            System.out.println("The unit you have chosen does not exist");
+            return;
+        }
+
+        System.out.println("Confirmation transfer to new unit " + newUnitNumber + "? (Y/N): ");
+
+        String cornfirmation = input.nextLine().trim();
+        if (cornfirmation.equalsIgnoreCase("Y")) {
+            manager.transferCustomerDatabase(customerId,newUnitNumber);
+        } else {
+            System.out.println("Transfer canceled. ");
+        }
+
+
+    }
+
 }

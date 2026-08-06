@@ -887,25 +887,37 @@ public class StorageManager {
     }
 
     // Prints fincancial report
-    public void showFinancialReportDatabase() {
+    public void showStorageDashboardDatabase() {
         Connection connection = DatabaseManager.getConnection();
 
         String totalsSql = """
-            SELECT
-                COUNT(*) AS total_units,
-                SUM(CASE WHEN su.occupied = TRUE THEN 1 ELSE 0 END) AS occupied_units,
-                SUM(CASE WHEN su.occupied = FALSE THEN 1 ELSE 0 END) AS vacant_units,
-                COALESCE(
-                    SUM(CASE
-                        WHEN su.occupied = TRUE THEN ut.base_rate
-                        ELSE 0
-                    END),
-                    0
-                ) AS monthly_revenue
-            FROM storage_units su
-            JOIN unit_types ut
-                ON su.type_id = ut.type_id;
-            """;
+    SELECT
+        COUNT(*) AS total_units,
+
+        SUM(CASE WHEN su.occupied = TRUE THEN 1 ELSE 0 END) AS occupied_units,
+
+        SUM(CASE WHEN su.occupied = FALSE THEN 1 ELSE 0 END) AS vacant_units,
+
+        COALESCE(
+            SUM(CASE WHEN su.occupied = TRUE THEN ut.base_rate ELSE 0 END),
+            0
+        ) AS monthly_revenue,
+
+        COALESCE(
+            SUM(ut.base_rate),
+            0
+        ) AS potential_monthly_revenue,
+
+        COALESCE(
+            AVG(CASE WHEN su.occupied = TRUE THEN ut.base_rate ELSE NULL END),
+            0
+        ) AS average_occupied_rate
+
+    FROM storage_units su
+
+    JOIN unit_types ut
+        ON su.type_id = ut.type_id;
+    """;
 
         String breakdownSql = """
             SELECT
@@ -921,13 +933,12 @@ public class StorageManager {
             """;
 
         try {
-            PreparedStatement totalStatement =
-                    connection.prepareStatement(totalsSql);
+            PreparedStatement totalStatement = connection.prepareStatement(totalsSql);
 
-            ResultSet resultsOverallReport =
-                    totalStatement.executeQuery();
+            ResultSet resultsOverallReport = totalStatement.executeQuery();
 
             if (resultsOverallReport.next()) {
+
                 int totalUnits = resultsOverallReport.getInt("total_units");
 
                 int occupiedUnits = resultsOverallReport.getInt("occupied_units");
@@ -936,25 +947,35 @@ public class StorageManager {
 
                 double monthlyRevenue = resultsOverallReport.getDouble("monthly_revenue");
 
+                double potentialMonthlyRevenue = resultsOverallReport.getDouble("potential_monthly_revenue");
+
+                double averageOccupiedRate = resultsOverallReport.getDouble("average_occupied_rate");
+
+                double lostRevenue = potentialMonthlyRevenue - monthlyRevenue;
+
                 double occupancyRate = 0;
 
                 if (totalUnits > 0) {
-                    occupancyRate =
-                            ((double) occupiedUnits / totalUnits) * 100;
+                    occupancyRate = ((double) occupiedUnits / totalUnits) * 100;
                 }
+                System.out.println("========================================");
+                System.out.println("===== SMART STORAGE DASHBOARD =====");
+                System.out.println("========================================");
 
-                System.out.println("===== Storage Financial Report =====");
                 System.out.println("Total Units: " + totalUnits);
                 System.out.println("Occupied Units: " + occupiedUnits);
                 System.out.println("Vacant Units: " + vacantUnits);
 
-                System.out.printf(
-                        "Occupancy Rate: %.2f%%%n", occupancyRate
-                );
+                System.out.printf("Occupancy Rate: %.2f%%%n", occupancyRate);
 
-                System.out.printf(
-                        "Monthly Revenue: $%.2f%n", monthlyRevenue
-                );
+                System.out.println("----------------------------------------------------");
+
+                System.out.printf("Monthly Revenue: $%.2f%n", monthlyRevenue);
+                System.out.printf("Potential Monthly Revenue: $%.2f%n", potentialMonthlyRevenue);
+                System.out.printf("Lost Revenue: $%.2f%n", lostRevenue);
+                System.out.printf("Average Occupied Rate: $%.2f%n", averageOccupiedRate);
+
+                System.out.println("========================================================");
             }
 
             PreparedStatement breakdownStatement = connection.prepareStatement(breakdownSql);
@@ -974,12 +995,7 @@ public class StorageManager {
 
                 double revenue = resultsRevenueBySize.getDouble("revenue_by_size");
 
-                System.out.printf(
-                        "%s | Occupied: %d | Revenue: $%.2f%n",
-                        size,
-                        occupied,
-                        revenue
-                );
+                System.out.printf("%s | Occupied: %d | Revenue: $%.2f%n", size, occupied, revenue);
             }
 
             if (!found) {
@@ -989,6 +1005,74 @@ public class StorageManager {
         } catch (SQLException e) {
             System.out.println("Unable to load financial report.");
             System.out.println(e.getMessage());
+        }
+    }
+
+    public void transferCustomerDatabase(int customerId, int newUnitNumber) {
+        Connection connection = DatabaseManager.getConnection();
+
+        String vacateOldUnitSql = """
+                UPDATE storage_units
+                SET occupied = FALSE,
+                    customer_id = NULL
+                WHERE customer_id = ?;
+                """;
+
+        String assignNewUnitSql = """
+                UPDATE storage_units
+                SET occupied = TRUE,
+                    customer_id = ?
+                WHERE unit_number = ?
+                    AND occupied = FALSE;
+                """;
+
+        try {
+            connection.setAutoCommit(false);
+
+            PreparedStatement vacateStatement = connection.prepareStatement(vacateOldUnitSql);
+
+            vacateStatement.setInt(1, customerId);
+
+            int oldUnitRows = vacateStatement.executeUpdate();
+
+            if (oldUnitRows == 0) {
+                System.out.println("Customer does not own any units currently.");
+                connection.rollback();
+                return;
+            }
+
+            PreparedStatement assignStatement = connection.prepareStatement(assignNewUnitSql);
+
+            assignStatement.setInt(1, customerId);
+            assignStatement.setInt(2,newUnitNumber);
+
+            int newUnitRows = assignStatement.executeUpdate();
+
+            if (newUnitRows == 0 ) {
+                System.out.println("The new unit does not exist or no longer avalaible.");
+                connection.rollback();
+                return;
+            }
+
+            connection.commit();
+
+            System.out.println("Customer transfered to unit " + newUnitNumber + " successfully.");
+
+        } catch (SQLException exception) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+
+            System.out.println("Unable to transfer customer.");
+            exception.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+            }
         }
     }
 
