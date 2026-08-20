@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.sql.ResultSet;
@@ -95,30 +96,71 @@ public class StorageManager {
     public void assignCustomerToUnitDatabase(int customerId, int unitNumber) {
         Connection connection = DatabaseManager.getConnection();
 
-        String sql = """
+        String assignUnitSql = """
                 UPDATE storage_units
                             SET occupied = TRUE,
                                 customer_id = ?
                             WHERE unit_number = ?;
                 """;
 
+        String retrieveUnitRateSql = """
+                SELECT ut.base_rate
+                FROM storage_units su
+                JOIN unit_types ut
+                    ON su.type_id = ut.type_id
+                WHERE su.unit_number = ?;
+                """;
+
         try {
-            PreparedStatement pS = connection.prepareStatement(sql);
+            connection.setAutoCommit(false);
 
-            pS.setInt(1, customerId);
-            pS.setInt(2, unitNumber);
+            PreparedStatement assignUnit = connection.prepareStatement(assignUnitSql);
 
-            int updatedRows = pS.executeUpdate();
+            assignUnit.setInt(1, customerId);
+            assignUnit.setInt(2, unitNumber);
 
-            if (updatedRows > 0) {
-                System.out.println("Customer assigned to unit successfully.");
-            } else {
-                System.out.println("Unit not found");
+            int updatedRows = assignUnit.executeUpdate();
+
+            if (updatedRows == 0) {
+                System.out.println("Unit not found. ");
+                connection.rollback();
             }
 
+            PreparedStatement findUnitRentalRateSql = connection.prepareStatement(retrieveUnitRateSql);
+
+            findUnitRentalRateSql.setInt(1, unitNumber);
+
+            ResultSet rateResults = findUnitRentalRateSql.executeQuery();
+
+            if (rateResults.next()) {
+                double monthlyrate = rateResults.getDouble("base_rate");
+
+                recordRentalHistory(connection, customerId, unitNumber,"MOVE_IN", monthlyrate, "Customer assigned to unit");
+            } else {
+                System.out.println("Unable to find unit rental rate.");
+                connection.rollback();
+                return;
+            }
+
+            connection.commit();
+            System.out.println("Customer assigned to unit successfully. ");
+
         } catch (SQLException e) {
+
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+
             System.out.println("Unable to connect customer to unit.");
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -164,7 +206,7 @@ public class StorageManager {
     }
 
     public boolean isValidAddress(String address) {
-        return address.length() >= 5;
+        return  address.matches("[A-Za-z0-9 .,'#/-]+");
     }
 
 
@@ -423,66 +465,56 @@ public class StorageManager {
         }
     }
 
-    // Seach Customer by phone
-    public int searchCustomerByPhoneDatabase(String phone) {
-        //Connection connection = DatabaseManager.getConnection();
+    // Seach Customer by phone from customer search menu
+    public ArrayList<Integer> searchCustomerByPhoneDatabase(String phone) {
 
-        String sql =
-                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
-                        "c.email, c.phone, su.unit_number, " +
-                        "ut.size, ut.base_rate " +
-                          "FROM customers c " +
-                        "LEFT JOIN storage_units su " +
-                        "ON c.customer_id = su.customer_id " +
-                        "LEFT JOIN unit_types ut " +
-                        "ON su.type_id = ut.type_id " +
-                        "WHERE c.phone = ?";
+        ArrayList<Integer> customerIds = new ArrayList<>();
+
+        String sql ="""
+                SELECT c.customer_id, c.customer_number, c.name, c.phone, su.unit_number
+                        FROM customers c
+                        LEFT JOIN storage_units su
+                        ON c.customer_id = su.customer_id
+                        WHERE c.phone = ?
+                        """;
 
         try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, phone);
-
             ResultSet results = statement.executeQuery();
 
-            if (results.next()) {
+            int optionNumber = 1;
 
-                System.out.println("\n==============================");
-                System.out.println("       CUSTOMER FOUND");
-                System.out.println("==============================");
+            while (results.next()) {
+                int customerId = results.getInt("customer_id");
+                customerIds.add(customerId);
+
+                System.out.println("\n" + optionNumber + ".");
                 System.out.println("Customer Number: " + results.getString("customer_number"));
                 System.out.println("Name: " + results.getString("name"));
-                System.out.println("Address: " + results.getString("address"));
-                System.out.println("Email: " + results.getString("email"));
                 System.out.println("Phone: " + results.getString("phone"));
-
-                int customerId = results.getInt("customer_id");
                 int unitNumber = results.getInt("unit_number");
 
                 if (results.wasNull()) {
                     System.out.println("Current Unit: None");
                 } else {
                     System.out.println("Current Unit: " + unitNumber);
-                    System.out.println("Unit Size: " + results.getString("size"));
-                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
                 }
-                System.out.println("==============================");
-                return customerId;
-
-            } else {
-                System.out.println("No customer found with that phone number.");
-                return -1;
+                optionNumber++;
             }
 
+            if (customerIds.isEmpty()) {
+                System.out.println("No customers found with that phone number.");
+            }
         } catch (SQLException exception) {
             System.out.println("Unable to search for customer.");
             exception.printStackTrace();
-            return -1;
         }
+        return customerIds;
     }
 
     //Search Customer by customer number
     public int searchCustomerByCustomerNumberDatabase(String customerNumber) {
-        //Connection connection = DatabaseManager.getConnection();
 
         String sql =
                 "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
@@ -502,29 +534,7 @@ public class StorageManager {
             ResultSet results = statement.executeQuery();
 
             if (results.next()) {
-
-                System.out.println("\n==============================");
-                System.out.println("       CUSTOMER FOUND");
-                System.out.println("==============================");
-                System.out.println("Customer Number: " + results.getString("customer_number"));
-                System.out.println("Name: " + results.getString("name"));
-                System.out.println("Address: " + results.getString("address"));
-                System.out.println("Email: " + results.getString("email"));
-                System.out.println("Phone: " + results.getString("phone"));
-
-                int customerId = results.getInt("customer_id");
-                int unitNumber = results.getInt("unit_number");
-
-                if (results.wasNull()) {
-                    System.out.println("Current Unit: None");
-                } else {
-                    System.out.println("Current Unit: " + unitNumber);
-                    System.out.println("Unit Size: " + results.getString("size"));
-                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
-                }
-                System.out.println("==============================");
-                return customerId;
-
+                return displayCustomerSearchResults(results);
             } else {
                 System.out.println("No customer found with that customer number.");
                 return -1;
@@ -537,62 +547,57 @@ public class StorageManager {
         }
     }
 
-    public int searchCustomerByCustomerNameDatabase(String searchedName) {
-        //Connection connection = DatabaseManager.getConnection();
+    // switched to array list in case searched customer returns more than 1 result
+    public ArrayList<Integer> searchCustomerByCustomerNameDatabase(String searchedName) {
 
-        String sql =
-                "SELECT c.customer_id, c.customer_number, c.name, c.address, " +
-                        "c.email, c.phone, su.unit_number, " +
-                        "ut.size, ut.base_rate " +
-                        "FROM customers c " +
-                        "LEFT JOIN storage_units su " +
-                        "ON c.customer_id = su.customer_id " +
-                        "LEFT JOIN unit_types ut " +
-                        "ON su.type_id = ut.type_id " +
-                        "WHERE c.name = ?";
+        ArrayList<Integer> customerIds = new ArrayList<>();
+
+        String sql = """
+                SELECT c.customer_id, c.customer_number, c.name,
+                        c.phone, su.unit_number
+                        FROM customers c 
+                        LEFT JOIN storage_units su
+                        ON c.customer_id = su.customer_id
+                        WHERE c.name = ?
+                        ORDER BY c.customer_number;
+                        """;
 
         try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, searchedName);
-
+            statement.setString(1, searchedName.trim());
             ResultSet results = statement.executeQuery();
 
-            if (results.next()) {
+            int optionNumber = 1;
 
-                System.out.println("\n==============================");
-                System.out.println("       CUSTOMER FOUND");
-                System.out.println("==============================");
+            while (results.next()) {
+                int customerId = results.getInt("customer_id");
+                customerIds.add(customerId);
+
+                System.out.println("\n" + optionNumber + ".");
                 System.out.println("Customer Number: " + results.getString("customer_number"));
                 System.out.println("Name: " + results.getString("name"));
-                System.out.println("Address: " + results.getString("address"));
-                System.out.println("Email: " + results.getString("email"));
                 System.out.println("Phone: " + results.getString("phone"));
-
-                int customerId = results.getInt("customer_id");
                 int unitNumber = results.getInt("unit_number");
 
                 if (results.wasNull()) {
                     System.out.println("Current Unit: None");
                 } else {
                     System.out.println("Current Unit: " + unitNumber);
-                    System.out.println("Unit Size: " + results.getString("size"));
-                    System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
                 }
-                System.out.println("==============================");
-                return customerId;
-
-            } else {
-                System.out.println("No customer found with that name. ");
-                return -1;
+                optionNumber++;
             }
 
+            if (customerIds.isEmpty()) {
+                System.out.println("No customers found with searched name.");
+            }
         } catch (SQLException exception) {
             System.out.println("Unable to search for customer.");
             exception.printStackTrace();
-            return -1;
         }
+        return customerIds;
     }
 
+    //Search customer by unit Number from customer Search menu
     public int searchCustomerByUnitNumberDatabase(int searchedUnitNumber) {
         //Connection connection = DatabaseManager.getConnection();
 
@@ -649,6 +654,32 @@ public class StorageManager {
         }
     }
 
+    //After Customer is searched by Phone/Name/Email/Unit #
+    private int displayCustomerSearchResults(ResultSet results)
+        throws SQLException {
+        System.out.println("\n==============================");
+        System.out.println("       CUSTOMER FOUND");
+        System.out.println("==============================");
+        System.out.println("Customer Number: " + results.getString("customer_number"));
+        System.out.println("Name: " + results.getString("name"));
+        System.out.println("Address: " + results.getString("address"));
+        System.out.println("Email: " + results.getString("email"));
+        System.out.println("Phone: " + results.getString("phone"));
+
+        int customerId = results.getInt("customer_id");
+        int unitNumber = results.getInt("unit_number");
+
+        if (results.wasNull()) {
+            System.out.println("Current Unit: None");
+        } else {
+            System.out.println("Current Unit: " + unitNumber);
+            System.out.println("Unit Size: " + results.getString("size"));
+            System.out.printf("Monthly Rate: $%.2f%n", results.getDouble("base_rate"));
+        }
+        System.out.println("==============================");
+        return customerId;
+    }
+
     // Searches StorageUnit and updates unit monthly rate
     public void updateRentalRateDatabase(String size, double newRate) {
         Connection connection = DatabaseManager.getConnection();
@@ -699,7 +730,7 @@ public class StorageManager {
         try {
             PreparedStatement pS = connection.prepareStatement(sql);
 
-            pS.setString(1, name);
+            pS.setString(1, name.trim());
             pS.setInt(2, customerId);
 
             int rowsUpdated = pS.executeUpdate();
@@ -825,64 +856,76 @@ public class StorageManager {
         }
     }
 
-    // Moves out tenant and marks storage as vacant
-    //UNUSED
-    public void moveOutUnitDatabase(int unitNumber) {
-        Connection connection = DatabaseManager.getConnection();
-
-        String sql = """
-                UPDATE storage_units
-                SET occupied = FALSE,
-                    customer_id = NULL
-                WHERE unit_number = ?;
-                """;
-
-        try{
-            PreparedStatement pS = connection.prepareStatement(sql);
-            pS.setInt(1, unitNumber);
-            int rowsUpdated = pS.executeUpdate();
-
-            if (rowsUpdated > 0) {
-                System.out.println("Unit " + unitNumber + " has been vacated.");
-            } else {
-                System.out.println("Unit not found.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Unable to vacate unit.");
-            System.out.println(e.getMessage());
-        }
-    }
-
     //Moves out customer via customerId
     public void moveOutCustomerDatabase(int customerId) {
 
         Connection connection = DatabaseManager.getConnection();
 
-        String sql = """
-            UPDATE storage_units
-            SET occupied = FALSE,
-                customer_id = NULL
-            WHERE customer_id = ?;
+        String findCurrentUnitSql = """
+               SELECT su.unit_number, ut.base_rate
+                FROM storage_units su
+                JOIN unit_types ut
+                    ON su.type_id = ut.type_id
+                WHERE su.customer_id = ?
+                    AND su.occupied = TRUE;
             """;
 
+        String vacateUnitSql = """
+                UPDATE storage_units
+                SET occupied = FALSE,
+                    customer_id = NULL
+                WHERE unit_number = ?
+                    AND customer_id = ?;
+                """;
+
         try {
-            PreparedStatement pS = connection.prepareStatement(sql);
+            connection.setAutoCommit(false);
 
-            pS.setInt(1, customerId);
+            PreparedStatement findCurrentUnit = connection.prepareStatement(findCurrentUnitSql);
+            findCurrentUnit.setInt(1, customerId);
 
-            int rowsUpdated = pS.executeUpdate();
+            ResultSet results = findCurrentUnit.executeQuery();
 
-            if (rowsUpdated > 0) {
-                System.out.println("Customer moved out successfully.");
-                System.out.println("The storage unit is now vacant.");
-            } else {
-                System.out.println("This customer does not have an assigned unit.");
+            if (!results.next()) {
+                System.out.println("Unit does not exist or is already vacant.");
+                connection.rollback();
+                return;
             }
 
-        } catch (SQLException exception) {
-            System.out.println("Unable to move out customer.");
-            exception.printStackTrace();
+            int unitNumber = results.getInt("unit_number");
+            double monthlyRate = results.getDouble("base_rate");
+
+            PreparedStatement vacateUnit = connection.prepareStatement(vacateUnitSql);
+            vacateUnit.setInt(1, unitNumber);
+            vacateUnit.setInt(2, customerId);
+
+            int rowsUpdated = vacateUnit.executeUpdate();
+            if (rowsUpdated == 0) {
+                connection.rollback();
+                System.out.println("Unable to vacate unit.");
+                return;
+            }
+
+            recordRentalHistory(connection, customerId, unitNumber, "MOVE_OUT", monthlyRate, "Customer moved out of unit.");
+
+            connection.commit();
+            System.out.println("Unit " + unitNumber + " has been vacated.");
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+
+            System.out.println("Unable to vacate unit.");
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1011,11 +1054,20 @@ public class StorageManager {
     public void transferCustomerDatabase(int customerId, int newUnitNumber) {
         Connection connection = DatabaseManager.getConnection();
 
+        String findOldUnitSql = """
+                SELECT su.unit_number, ut.base_rate
+                FROM storage_units su
+                JOIN unit_types ut
+                    ON su.type_id = ut.type_id
+                WHERE su.customer_id = ?;
+                """;
+
         String vacateOldUnitSql = """
                 UPDATE storage_units
                 SET occupied = FALSE,
                     customer_id = NULL
-                WHERE customer_id = ?;
+                WHERE customer_id = ?
+                    AND unit_number = ?;
                 """;
 
         String assignNewUnitSql = """
@@ -1026,37 +1078,77 @@ public class StorageManager {
                     AND occupied = FALSE;
                 """;
 
+        String findNewUnitSql = """
+                SELECT ut.base_rate
+                FROM storage_units su
+                JOIN unit_types ut
+                    ON su.type_id = ut.type_id
+                WHERE su.unit_number = ?
+                    AND su.occupied = FALSE;
+                """;
+
         try {
             connection.setAutoCommit(false);
 
-            PreparedStatement vacateStatement = connection.prepareStatement(vacateOldUnitSql);
+            PreparedStatement findOldUnitStatement = connection.prepareStatement(findOldUnitSql);
+            findOldUnitStatement.setInt(1, customerId);
 
+            ResultSet findOldUnitResults = findOldUnitStatement.executeQuery();
+            if (!findOldUnitResults.next()) {
+                System.out.println("Customer does not own any units currently.");
+                connection.rollback();
+                return;
+            }
+
+            int oldUnitNumber = findOldUnitResults.getInt("unit_number");
+            double oldMonthlyRate = findOldUnitResults.getDouble("base_rate");
+
+            PreparedStatement vacateStatement = connection.prepareStatement(vacateOldUnitSql);
             vacateStatement.setInt(1, customerId);
+            vacateStatement.setInt(2, oldUnitNumber);
+
+            PreparedStatement findNewUnitStatement = connection.prepareStatement(findNewUnitSql);
+            findNewUnitStatement.setInt(1, newUnitNumber);
+
+            ResultSet findNewUnitResults = findNewUnitStatement.executeQuery();
+            if (!findNewUnitResults.next()) {
+                System.out.println("The new unit does not exist or isn't available.");
+                connection.rollback();
+                return;
+            }
+
+            double newMonthlyRate = findNewUnitResults.getDouble("base_rate");
 
             int oldUnitRows = vacateStatement.executeUpdate();
-
             if (oldUnitRows == 0) {
                 System.out.println("Customer does not own any units currently.");
                 connection.rollback();
                 return;
             }
 
-            PreparedStatement assignStatement = connection.prepareStatement(assignNewUnitSql);
+            PreparedStatement assignUnitStatement = connection.prepareStatement(assignNewUnitSql);
 
-            assignStatement.setInt(1, customerId);
-            assignStatement.setInt(2,newUnitNumber);
+            assignUnitStatement.setInt(1, customerId);
+            assignUnitStatement.setInt(2,newUnitNumber);
 
-            int newUnitRows = assignStatement.executeUpdate();
+            int newUnitRows = assignUnitStatement.executeUpdate();
 
             if (newUnitRows == 0 ) {
-                System.out.println("The new unit does not exist or no longer avalaible.");
+                System.out.println("The new unit does not exist or no longer available.");
                 connection.rollback();
                 return;
             }
 
-            connection.commit();
+            // Transfer out of old unit
+            recordRentalHistory(connection, customerId, oldUnitNumber, "TRANSFER_OUT", oldMonthlyRate, "Transferred to unit " + newUnitNumber);
 
-            System.out.println("Customer transfered to unit " + newUnitNumber + " successfully.");
+            //Transfered to new unit
+            recordRentalHistory(connection, customerId, newUnitNumber, "TRANSFER_IN", newMonthlyRate, "Transferred from Unit " + oldUnitNumber);
+
+
+            connection.commit();
+            //Success
+            System.out.println("Customer transferred to unit " + newUnitNumber + " successfully.");
 
         } catch (SQLException exception) {
             try {
@@ -1076,4 +1168,70 @@ public class StorageManager {
         }
     }
 
+    private void recordRentalHistory(Connection connection, int customerId, int unitNumber, String actionType, double monthlyRate, String notes)
+        throws SQLException {
+            String sql = """
+                    INSERT INTO rental_history(customer_id, unit_number, action_type, monthly_rate, notes)
+                    VALUES (?,?,?,?,?)
+                    """;
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, customerId);
+            statement.setInt(2, unitNumber);
+            statement.setString(3, actionType);
+            statement.setDouble(4, monthlyRate);
+            statement.setString(5, notes);
+
+            statement.executeUpdate();
+        };
+
+    public void showRentalHistoryDatabase(int customerId){
+        Connection connection = DatabaseManager.getConnection();
+
+        String sql = """
+                SELECT unit_number, action_type, action_date, monthly_rate, notes
+                FROM rental_history
+                WHERE customer_id = ?
+                ORDER BY action_date ASC;
+                """;
+
+        try {
+            PreparedStatement DisplayHistory = connection.prepareStatement(sql);
+
+            DisplayHistory.setInt(1, customerId);
+
+            ResultSet results = DisplayHistory.executeQuery();
+
+            boolean found = false;
+
+            System.out.println("\n+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+            System.out.println("         RENTAL HISTORY         ");
+            System.out.println("+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+
+            while (results.next()) {
+                found = true;
+
+                int unitNumber = results.getInt("unit_number");
+                String actionType = results.getString("action_type");
+                String actionDate = results.getString("action_date");
+                double monthlyRate = results.getDouble("monthly_rate");
+                String notes = results.getString("notes");
+
+                System.out.println("Action: " + actionType);
+                System.out.println("Unit: " + unitNumber);
+                System.out.println("Date: " + actionDate);
+                System.out.printf("Rate: $%.2f%n", monthlyRate);
+                System.out.println("Notes: " + notes);
+                System.out.println("-----------------------------------------");
+            }
+            if (!found) {
+                System.out.println("Customer has no rental history");
+            }
+        } catch (SQLException exception) {
+            System.out.println("Unable to load rental History");
+            exception.printStackTrace();
+        }
+    }
 }
+

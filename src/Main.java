@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -12,7 +13,7 @@ public class Main {
         int option = 0;
 
         // The program continues until the user selects option 9.
-        while (option != 9) {
+        while (option != 8) {
 
             System.out.println("\n==========================");
             System.out.println("   STORAGE MANAGER MENU");
@@ -21,11 +22,10 @@ public class Main {
             System.out.println("2. View Unit");
             System.out.println("3. Show All Units");
             System.out.println("4. Filter Units");
-            System.out.println("5. Move Out Unit");
-            System.out.println("6. Storage Dashboard");
-            System.out.println("7. Update Rental Rate");
-            System.out.println("8. Customer Management");
-            System.out.println("9. Exit");
+            System.out.println("5. Storage Dashboard");
+            System.out.println("6. Update Rental Rate");
+            System.out.println("7. Customer Management");
+            System.out.println("8. Exit");
             System.out.print("Enter choice: ");
 
             option = input.nextInt();
@@ -53,7 +53,7 @@ public class Main {
                     }
 
                     System.out.print("Enter address: ");
-                    String address = input.nextLine();
+                    String address = input.nextLine().trim();
 
                     if (!manager.isValidAddress(address)) {
                         System.out.println("Invalid address.");
@@ -146,18 +146,10 @@ public class Main {
                     break;
 
                 case 5:
-                    System.out.print("Enter the unit number to vacate: ");
-
-                    int vacateUnit = input.nextInt();
-
-                    manager.moveOutUnitDatabase(vacateUnit);
-                    break;
-
-                case 6:
                     manager.showStorageDashboardDatabase();
                     break;
 
-                case 7:
+                case 6:
                     // Clears the newline left by nextInt().
                     input.nextLine();
 
@@ -170,11 +162,11 @@ public class Main {
                     manager.updateRentalRateDatabase(sizeToUpdate, newRate);
                     break;
 
-                case 8:
+                case 7:
                     customerManagementMenu(manager, input);
                     break;
 
-                case 9:
+                case 8:
                     System.out.println("Exiting program...");
                     break;
 
@@ -190,6 +182,7 @@ public class Main {
      // Displays the main Customer Management menu.
      // This method handles only the menu and user input.
 
+    //1 First menu
     public static void customerManagementMenu(StorageManager manager, Scanner input) {
 
         int choice = 0;
@@ -222,6 +215,7 @@ public class Main {
         }
     }
 
+    //2 Second menu to look up customer via info
     public static void customerSearchMenu(StorageManager manager, Scanner input) {
 
         int choice = 0;
@@ -245,12 +239,22 @@ public class Main {
 
                 case 1: {
                     System.out.print("Enter phone number: ");
-                    String phone = input.nextLine();
+                    String searchedPhone = input.nextLine();
 
-                    int customerId = manager.searchCustomerByPhoneDatabase(phone);
+                    ArrayList<Integer> customerIds = manager.searchCustomerByPhoneDatabase(searchedPhone);
 
-                    if (customerId != -1) {
+                   // int customerId = manager.searchCustomerByPhoneDatabase(phone);
+                    if (!customerIds.isEmpty()) {
+                        System.out.println("Choose a customer (1-" + customerIds.size() + "): ");
+                    }
+
+                    int selectedCustomer = input.nextInt();
+                    input.nextLine();
+                    if (selectedCustomer >= 1 && selectedCustomer <= customerIds.size()) {
+                        int customerId = customerIds.get(selectedCustomer - 1);
                         customerActionMenu(manager, input, customerId);
+                    } else {
+                        System.out.println("Invalid customer selection");
                     }
                 }
                     break;
@@ -269,12 +273,21 @@ public class Main {
 
                 case 3: {
                     System.out.println("Enter Customer Name: ");
-                    String customerName = input.nextLine();
+                    String searchedName = input.nextLine().trim();
 
-                    int customerId = manager.searchCustomerByCustomerNameDatabase(customerName);
+                    ArrayList<Integer> customerIds = manager.searchCustomerByCustomerNameDatabase(searchedName);
 
-                    if (customerId != -1) {
+                    if (!customerIds.isEmpty()) {
+                        System.out.println("Choose a customer (1-" + customerIds.size() + "): ");
+                    }
+
+                    int selectedCustomer = input.nextInt();
+                    input.nextLine();
+                    if (selectedCustomer >= 1 && selectedCustomer <= customerIds.size()) {
+                        int customerId = customerIds.get(selectedCustomer - 1);
                         customerActionMenu(manager, input, customerId);
+                    } else {
+                        System.out.println("Invalid customer selection");
                     }
                 }
                     break;
@@ -301,6 +314,7 @@ public class Main {
         }
     }
 
+    //3 Third Once customer is found. Dictate action
     public static void customerActionMenu(StorageManager manager, Scanner input, int customerId) {
 
         int choice;
@@ -310,7 +324,8 @@ public class Main {
             System.out.println("1. Update Customer");
             System.out.println("2. Move Out Customer");
             System.out.println("3. Transfer Customer");
-            System.out.println("4. Return");
+            System.out.println("4. View Rental History");
+            System.out.println("5. Return");
 
             System.out.print("Choose an option: ");
             choice = input.nextInt();
@@ -331,16 +346,21 @@ public class Main {
                     break;
 
                 case 4:
+                    manager.showRentalHistoryDatabase(customerId);
+                    break;
+
+                case 5:
                     System.out.println("Returning...");
                     break;
 
-                default:
+                    default:
                     System.out.println("Invalid option.");
             }
 
-        } while (choice != 4);
+        } while (choice != 5);
     }
 
+    //Update customer info menu
     public static void updateCustomerMenu(StorageManager manager, Scanner input, int customerId) {
 
         int choice = 0;
@@ -400,6 +420,7 @@ public class Main {
         }
     }
 
+    //Move out customer menu
     public static void moveOutCustomerMenu(StorageManager manager, Scanner input, int customerId) {
 
         System.out.println("\n==========================");
@@ -419,6 +440,7 @@ public class Main {
         }
     }
 
+    //Transfer customer menu
     public static void transferCustomerMenu(StorageManager manager, Scanner input, int customerId) {
         System.out.println("+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+");
         System.out.println("        TRANSFER CUSTOMER           ");
